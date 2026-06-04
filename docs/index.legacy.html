@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CORTEX — Memory Infrastructure</title>
+  <meta name="description" content="The memory layer between you and your AI. Permanent, searchable, wired directly into every agent you run.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="landing.css?v=1780541644387">
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+</head>
+<body>
+
+<div class="noise" aria-hidden="true"></div>
+
+<!-- Navigation -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">CORTEX</a>
+    <div class="nav-links">
+      <a href="#cap1">Capabilities</a>
+      <a href="#api">API</a>
+      <a href="http://127.0.0.1:7002" class="nav-cta">Get Access</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-content">
+      <span class="badge">Memory Infrastructure</span>
+      <h1 class="hero-h1">
+        <span class="hero-line"><span class="hero-word" style="--d:0">Permanent</span></span>
+        <span class="hero-line"><span class="hero-word" style="--d:1"><span class="accent-word">memory.</span></span></span>
+      </h1>
+      <p class="hero-sub" style="--delay:0.55s">Give your AI everything it needs to know.</p>
+
+      <div class="hero-actions" style="--delay:0.8s">
+        <a href="http://127.0.0.1:7002" class="btn-primary">Get Access</a>
+        <a href="#cap1" class="btn-ghost">Explore <span aria-hidden="true">↓</span></a>
+      </div>
+    </div>
+    <div class="hero-scroll" aria-hidden="true">
+      <span class="scroll-line"></span>
+    </div>
+  </section>
+
+  <!-- Statement -->
+  <section class="statement">
+    <iframe src="brain.html?embedded=1" class="statement-brain" title="" aria-hidden="true" tabindex="-1" width="680" height="680" frameborder="0" scrolling="no"></iframe>
+    <p class="reveal">CORTEX is not a notes app. It is the memory layer between you and your AI — permanent, searchable, and wired directly into every agent you run.</p>
+  </section>
+
+  <!-- Capability 1: Total Recall -->
+  <section class="cap-section" id="cap1">
+    <div class="cap-split">
+      <div class="cap-visual">
+        <div class="terminal-mock reveal-scale">
+          <div class="term-bar">$ cortex search "strategy"</div>
+          <div class="term-output">
+            <span class="term-ln">&gt; <span class="term-success">q4-strategy</span> <span class="term-meta">0.98</span></span>
+            <span class="term-ln">&gt; <span class="term-success">budget-plan</span> <span class="term-meta">0.87</span></span>
+            <span class="term-ln">&gt; <span class="term-success">vision-2026</span> <span class="term-meta">0.84</span></span>
+            <span class="term-ln term-muted">Returned in &lt;20ms</span>
+          </div>
+        </div>
+      </div>
+      <div class="cap-text reveal-right">
+        <span class="cap-num">01</span>
+        <h2>Total Recall</h2>
+        <p>Search sub-second across every memory you have ever stored. No index refresh. No delay. No approximation.</p>
+        <div class="stat-row">
+          <div class="stat-item">
+            <span class="stat-value"><span class="counter" data-target="20">0</span>ms</span>
+            <span class="stat-label">Search speed</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value"><span class="counter" data-target="100">0</span>%</span>
+            <span class="stat-label">Accuracy</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Capability 2: Agent Access -->
+  <section class="cap-section">
+    <div class="cap-split">
+      <div class="cap-text reveal-left">
+        <span class="cap-num">02</span>
+        <h2>Agent Access</h2>
+        <p>Every memory is a REST endpoint. Any agent, workflow, or script reads it in real time with a single HTTP call.</p>
+        <div class="stat-row">
+          <div class="stat-item">
+            <span class="stat-value"><span class="counter" data-target="99">0</span>.<span class="counter" data-target="9">0</span>%</span>
+            <span class="stat-label">Uptime</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">&lt;<span class="counter" data-target="50">0</span>ms</span>
+            <span class="stat-label">Latency</span>
+          </div>
+        </div>
+      </div>
+      <div class="cap-visual">
+        <div class="api-mock reveal-scale">
+          <div class="api-req">
+            <span class="api-method">GET</span>
+            <span class="api-path">/api/recall?q=strategy</span>
+          </div>
+          <div class="api-res">
+            <span class="api-brace">[{</span>
+            <span class="api-field"><span class="api-key">"id"</span>: <span class="api-str">"q4-strategy"</span></span>
+            <span class="api-field"><span class="api-key">"relevance"</span>: <span class="api-num">0.98</span></span>
+            <span class="api-brace">}]</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Capability 3: Living Graph -->
+  <section class="cap-section">
+    <div class="cap-split">
+      <div class="cap-visual">
+        <div class="graph-mock reveal-scale">
+          <svg viewBox="0 0 240 180" class="inline-graph">
+            <!-- Nodes -->
+            <circle class="graph-node-center" cx="120" cy="90" r="12" fill="oklch(91% 0.21 130)" opacity="0.9"/>
+            <circle class="graph-node" cx="60" cy="40" r="8" fill="oklch(91% 0.21 130)" opacity="0.5"/>
+            <circle class="graph-node" cx="180" cy="40" r="8" fill="oklch(91% 0.21 130)" opacity="0.5"/>
+            <circle class="graph-node" cx="40" cy="90" r="8" fill="oklch(91% 0.21 130)" opacity="0.5"/>
+            <circle class="graph-node" cx="200" cy="90" r="8" fill="oklch(91% 0.21 130)" opacity="0.5"/>
+            <circle class="graph-node" cx="80" cy="150" r="8" fill="oklch(91% 0.21 130)" opacity="0.5"/>
+            <circle class="graph-node" cx="160" cy="150" r="8" fill="oklch(91% 0.21 130)" opacity="0.5"/>
+            <!-- Connections -->
+            <line class="graph-line" x1="120" y1="90" x2="60" y2="40" stroke="oklch(91% 0.21 130 / 0.2)" stroke-width="1.5"/>
+            <line class="graph-line" x1="120" y1="90" x2="180" y2="40" stroke="oklch(91% 0.21 130 / 0.2)" stroke-width="1.5"/>
+            <line class="graph-line" x1="120" y1="90" x2="40" y2="90" stroke="oklch(91% 0.21 130 / 0.2)" stroke-width="1.5"/>
+            <line class="graph-line" x1="120" y1="90" x2="200" y2="90" stroke="oklch(91% 0.21 130 / 0.2)" stroke-width="1.5"/>
+            <line class="graph-line" x1="120" y1="90" x2="80" y2="150" stroke="oklch(91% 0.21 130 / 0.2)" stroke-width="1.5"/>
+            <line class="graph-line" x1="120" y1="90" x2="160" y2="150" stroke="oklch(91% 0.21 130 / 0.2)" stroke-width="1.5"/>
+          </svg>
+        </div>
+      </div>
+      <div class="cap-text reveal-right">
+        <span class="cap-num">03</span>
+        <h2>Living Graph</h2>
+        <p>Connections between memories build automatically. Surface patterns you did not know existed.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Capability 4: Version Permanence -->
+  <section class="cap-section">
+    <div class="cap-split">
+      <div class="cap-text reveal-left">
+        <span class="cap-num">04</span>
+        <h2>Version Permanence</h2>
+        <p>Every update is versioned. Restore any moment in your thinking. Nothing is ever lost.</p>
+      </div>
+      <div class="cap-visual">
+        <div class="timeline-mock reveal-scale stagger">
+          <div class="timeline-item">
+            <span class="timeline-marker">v4</span>
+            <span class="timeline-label">Cut scope to MVP</span>
+          </div>
+          <div class="timeline-item">
+            <span class="timeline-marker">v3</span>
+            <span class="timeline-label">Expanded roadmap</span>
+          </div>
+          <div class="timeline-item">
+            <span class="timeline-marker">v2</span>
+            <span class="timeline-label">Initial planning</span>
+          </div>
+          <div class="timeline-item">
+            <span class="timeline-marker">v1</span>
+            <span class="timeline-label">First idea</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Capability 5: Semantic Search -->
+  <section class="cap-section">
+    <div class="cap-split">
+      <div class="cap-visual">
+        <div class="search-mock reveal-scale">
+          <div class="search-bar">
+            <span class="search-icon">⌕</span>
+            <span class="search-query">what was my Q4 decision?</span>
+            <span class="search-latency">12ms</span>
+          </div>
+          <div class="search-results">
+            <div class="search-result">
+              <span class="result-score">0.97</span>
+              <div class="result-body">
+                <span class="result-title">Q4 Strategy · 3 days ago</span>
+                <span class="result-snippet">Cut scope to MVP after cost analysis…</span>
+              </div>
+            </div>
+            <div class="search-result">
+              <span class="result-score">0.84</span>
+              <div class="result-body">
+                <span class="result-title">Q4 Budget Review · 5 days ago</span>
+                <span class="result-snippet">Approved $180k for infrastructure…</span>
+              </div>
+            </div>
+            <div class="search-result">
+              <span class="result-score">0.71</span>
+              <div class="result-body">
+                <span class="result-title">Team Sync · 1 week ago</span>
+                <span class="result-snippet">Agreed to defer v2 features to Q1…</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cap-text reveal-right">
+        <span class="cap-num">05</span>
+        <h2>Find by meaning.<br>Not keywords.</h2>
+        <p>CORTEX understands context. Ask in plain language — it surfaces what you actually meant, ranked by semantic relevance, not recency.</p>
+        <div class="stat-row">
+          <div class="stat-item">
+            <span class="stat-value">12ms</span>
+            <span class="stat-label">Semantic lookup</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">0.97</span>
+            <span class="stat-label">Top relevance</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Capability 6: Context Injection -->
+  <section class="cap-section">
+    <div class="cap-split">
+      <div class="cap-text reveal-left">
+        <span class="cap-num">06</span>
+        <h2>Your AI<br>always knows.</h2>
+        <p>CORTEX silently prepends your most relevant memories to every agent call. No manual copy-paste. No context loss. Your AI walks in already briefed.</p>
+        <div class="stat-row">
+          <div class="stat-item">
+            <span class="stat-value">Auto</span>
+            <span class="stat-label">Context injection</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">0ms</span>
+            <span class="stat-label">Setup required</span>
+          </div>
+        </div>
+      </div>
+      <div class="cap-visual">
+        <div class="inject-mock reveal-scale">
+          <div class="inject-header">
+            <span class="inject-badge">CORTEX</span>
+            <span class="inject-label">injecting 3 memories</span>
+          </div>
+          <div class="inject-items">
+            <div class="inject-item">
+              <span class="inject-arrow">▶</span>
+              <span class="inject-text">Q4: Cut scope to MVP</span>
+            </div>
+            <div class="inject-item">
+              <span class="inject-arrow">▶</span>
+              <span class="inject-text">Budget: $180k approved</span>
+            </div>
+            <div class="inject-item">
+              <span class="inject-arrow">▶</span>
+              <span class="inject-text">Team: Sync on Thursdays</span>
+            </div>
+          </div>
+          <div class="inject-divider">
+            <span class="inject-divider-line"></span>
+            <span class="inject-divider-label">Claude</span>
+            <span class="inject-divider-line"></span>
+          </div>
+          <div class="inject-response">
+            Based on your Q4 decision to cut scope, I can see the MVP focus means we should prioritize core retention features over new acquisition…
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Capability 7: Universal Sync -->
+  <section class="cap-section">
+    <div class="cap-split">
+      <div class="cap-visual">
+        <div class="agent-log reveal-scale">
+          <div class="agent-log-header">
+            <span class="log-dot"></span>
+            <span class="log-dot"></span>
+            <span class="log-dot"></span>
+            <span class="log-title">CORTEX</span>
+            <span class="log-status">● live</span>
+          </div>
+          <div class="agent-log-body">
+            <div class="log-entry">
+              <span class="log-agent">claude</span>
+              <span class="log-sep">→</span>
+              <span class="log-method get">GET</span>
+              <span class="log-path">/api/recall</span>
+              <span class="log-time">8ms</span>
+            </div>
+            <div class="log-entry">
+              <span class="log-agent">gpt-4o</span>
+              <span class="log-sep">→</span>
+              <span class="log-method get">GET</span>
+              <span class="log-path">/api/recall</span>
+              <span class="log-time">11ms</span>
+            </div>
+            <div class="log-entry">
+              <span class="log-agent">cursor</span>
+              <span class="log-sep">→</span>
+              <span class="log-method post">POST</span>
+              <span class="log-path">/api/memories</span>
+              <span class="log-time">14ms</span>
+            </div>
+            <div class="log-entry">
+              <span class="log-agent">script.py</span>
+              <span class="log-sep">→</span>
+              <span class="log-method get">GET</span>
+              <span class="log-path">/api/graph</span>
+              <span class="log-time">6ms</span>
+            </div>
+          </div>
+          <div class="agent-log-footer">
+            <span class="log-count">4 agents</span>
+            <span class="log-status-bar"></span>
+            <span class="log-uptime">99.9%</span>
+          </div>
+        </div>
+      </div>
+      <div class="cap-text reveal-right">
+        <span class="cap-num">07</span>
+        <h2>Every agent.<br>One brain.</h2>
+        <p>Claude, GPT, Cursor, your custom scripts — all reading from the same memory store. Consistent context. Everywhere. Always.</p>
+        <div class="stat-row">
+          <div class="stat-item">
+            <span class="stat-value">∞</span>
+            <span class="stat-label">Agent integrations</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">1</span>
+            <span class="stat-label">Memory store</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feature Grid -->
+  <section class="features-grid-section">
+    <div class="features-grid-inner">
+      <div class="features-grid-header reveal">
+        <span class="section-tag">Everything else</span>
+        <h2>Built for the long run.</h2>
+        <p>Eight more reasons serious builders choose CORTEX as their memory infrastructure.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card reveal">
+          <div class="feature-icon-wrap">
+            <svg class="fi fi-hooks" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <circle cx="16" cy="16" r="3.5" stroke="currentColor" stroke-width="1.5"/>
+              <line x1="16" y1="12.5" x2="16" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="19.5" y1="16" x2="26" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="16" y1="19.5" x2="16" y2="26" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="12.5" y1="16" x2="6" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <circle class="fi-orbit fi-orbit-1" cx="16" cy="5" r="1.5" fill="currentColor"/>
+              <circle class="fi-orbit fi-orbit-2" cx="27" cy="16" r="1.5" fill="currentColor"/>
+              <circle class="fi-orbit fi-orbit-3" cx="16" cy="27" r="1.5" fill="currentColor"/>
+              <circle class="fi-orbit fi-orbit-4" cx="5" cy="16" r="1.5" fill="currentColor"/>
+            </svg>
+          </div>
+          <h3>Webhooks</h3>
+          <p>Fire events to any URL when memories are created, updated, or recalled.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon-wrap">
+            <svg class="fi fi-bars" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <rect class="fi-bar fi-bar-1" x="4"  y="22" width="4" height="6"  rx="1" fill="currentColor" opacity="0.4"/>
+              <rect class="fi-bar fi-bar-2" x="11" y="17" width="4" height="11" rx="1" fill="currentColor" opacity="0.6"/>
+              <rect class="fi-bar fi-bar-3" x="18" y="11" width="4" height="17" rx="1" fill="currentColor" opacity="0.8"/>
+              <rect class="fi-bar fi-bar-4" x="25" y="5"  width="4" height="23" rx="1" fill="currentColor"/>
+            </svg>
+          </div>
+          <h3>Memory Scoring</h3>
+          <p>Every memory carries a relevance score. Surface your strongest signals first.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon-wrap">
+            <svg class="fi fi-export" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <rect x="4" y="14" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M14 4 L28 4 L28 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path class="fi-export-line" d="M11 21 L28 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="3 3"/>
+            </svg>
+          </div>
+          <h3>Bulk Export</h3>
+          <p>Export your entire memory store as JSON or Markdown. Your data, your format.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon-wrap">
+            <svg class="fi fi-import" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <rect x="14" y="14" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M18 4 L4 4 L4 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path class="fi-import-line" d="M4 4 L21 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="3 3"/>
+            </svg>
+          </div>
+          <h3>Batch Import</h3>
+          <p>Ingest thousands of notes, chats, or documents in a single API call.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon-wrap">
+            <svg class="fi fi-tag" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <path class="fi-tag-shape" d="M4 4 L18 4 L28 14 L14 28 L4 18 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              <circle class="fi-tag-dot" cx="11" cy="11" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <h3>Tag Taxonomy</h3>
+          <p>Organize memories with a flexible tagging system. Filter with surgical precision.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon-wrap">
+            <svg class="fi fi-search" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <circle cx="13" cy="13" r="8" stroke="currentColor" stroke-width="1.5"/>
+              <line x1="19" y1="19" x2="27" y2="27" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line class="fi-scan-line" x1="7" y1="13" x2="19" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.55"/>
+            </svg>
+          </div>
+          <h3>Full-text Search</h3>
+          <p>Keyword search for exact matches alongside semantic lookup. Both, always.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon-wrap">
+            <svg class="fi fi-decay" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <circle cx="16" cy="16" r="2" fill="currentColor"/>
+              <circle class="fi-ring fi-ring-1" cx="16" cy="16" r="5"  stroke="currentColor" stroke-width="1.5"/>
+              <circle class="fi-ring fi-ring-2" cx="16" cy="16" r="9"  stroke="currentColor" stroke-width="1.5" opacity="0.5"/>
+              <circle class="fi-ring fi-ring-3" cx="16" cy="16" r="13" stroke="currentColor" stroke-width="1.5" opacity="0.25"/>
+            </svg>
+          </div>
+          <h3>Memory Decay</h3>
+          <p>Old, unused memories fade naturally. Your context stays fresh and relevant.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon-wrap">
+            <svg class="fi fi-lock" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <rect x="6" y="14" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M10 14 L10 10 A6 6 0 0 1 22 10 L22 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <circle class="fi-lock-dot" cx="16" cy="21" r="2" fill="currentColor"/>
+            </svg>
+          </div>
+          <h3>Access Control</h3>
+          <p>Token-scoped read/write access. Share some memories, protect the rest.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- API Section -->
+  <section class="api-section" id="api">
+    <div class="api-header reveal">
+      <span class="section-tag">For Developers</span>
+      <h2>Your brain,<br>programmable.</h2>
+      <p>CORTEX exposes your entire memory as a REST API. One HTTP call gives any agent perfect recall.</p>
+      <a href="#" class="api-docs-link">Full API reference &#8594;</a>
+    </div>
+
+    <div class="api-blocks">
+      <div class="api-block reveal">
+        <div class="block-bar">
+          <span class="method post">POST</span>
+          <span class="endpoint">/api/memories</span>
+        </div>
+        <pre class="code-pre"><code><span class="tok-brace">{</span>
+  <span class="tok-key">"id"</span><span class="tok-punct">:</span> <span class="tok-str">"q4-strategy"</span><span class="tok-punct">,</span>
+  <span class="tok-key">"content"</span><span class="tok-punct">:</span> <span class="tok-str">"Decided to cut scope to..."</span><span class="tok-punct">,</span>
+  <span class="tok-key">"tags"</span><span class="tok-punct">:</span> <span class="tok-brace">[</span><span class="tok-str">"strategy"</span><span class="tok-punct">,</span> <span class="tok-str">"q4"</span><span class="tok-brace">]</span>
+<span class="tok-brace">}</span></code></pre>
+      </div>
+
+      <div class="api-block reveal">
+        <div class="block-bar">
+          <span class="method get">GET</span>
+          <span class="endpoint">/api/recall?q=strategy</span>
+        </div>
+        <pre class="code-pre"><code><span class="tok-comment">// Returns in &lt;20ms</span>
+<span class="tok-brace">[</span>
+  <span class="tok-brace">{</span>
+    <span class="tok-key">"id"</span><span class="tok-punct">:</span>         <span class="tok-str">"q4-strategy"</span><span class="tok-punct">,</span>
+    <span class="tok-key">"relevance"</span><span class="tok-punct">:</span> <span class="tok-num">0.98</span><span class="tok-punct">,</span>
+    <span class="tok-key">"content"</span><span class="tok-punct">:</span>   <span class="tok-str">"..."</span>
+  <span class="tok-brace">}</span>
+<span class="tok-brace">]</span></code></pre>
+      </div>
+
+      <div class="api-block reveal">
+        <div class="block-bar">
+          <span class="method get">GET</span>
+          <span class="endpoint">/api/graph</span>
+        </div>
+        <pre class="code-pre"><code><span class="tok-comment">// Knowledge graph as nodes + edges</span>
+<span class="tok-brace">{</span>
+  <span class="tok-key">"nodes"</span><span class="tok-punct">:</span> <span class="tok-brace">[</span><span class="tok-comment">/* all memories */</span><span class="tok-brace">]</span><span class="tok-punct">,</span>
+  <span class="tok-key">"edges"</span><span class="tok-punct">:</span> <span class="tok-brace">[</span><span class="tok-comment">/* all connections */</span><span class="tok-brace">]</span>
+<span class="tok-brace">}</span></code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust -->
+  <section class="trust">
+    <div class="trust-inner reveal">
+      <span class="section-tag">Privacy</span>
+      <p class="trust-body">CORTEX runs entirely on your machine. Your memories live in a local database at <code>127.0.0.1:7002</code>. Nothing leaves your device. No cloud. No third party. Nothing to breach.</p>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section class="cta-final">
+    <div class="cta-inner reveal">
+      <h2>Start<br><span class="accent-word">remembering.</span></h2>
+      <a href="http://127.0.0.1:7002" class="btn-primary btn-xl">Get Access</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span class="footer-brand">CORTEX</span>
+    <span>Memory Infrastructure</span>
+    <span>Built for the AI age</span>
+  </div>
+</footer>
+
+<script src="landing.js?v=1780541644387"></script>
+</body>
+</html>

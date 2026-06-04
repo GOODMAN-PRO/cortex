@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CORTEX — a second brain that keeps itself alive</title>
+<meta name="description" content="CORTEX is a local-first, AI-native second brain. It captures, links, and resurfaces your notes automatically — by meaning, on your own machine. No cloud, no API keys." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#09090b; --ink2:#0e0f12; --surf:#121317; --surf2:#16181e;
+    --line:rgba(255,255,255,.075); --line2:rgba(255,255,255,.13);
+    --txt:#ECEBE6; --mut:#9a9ba3; --mut2:#62646c;
+    --accent:#c8f24e; --accent-deep:#aada3c;
+    --serif:'Fraunces',Georgia,serif;
+    --sans:'Space Grotesk',system-ui,-apple-system,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+    --ease:cubic-bezier(.2,.7,0,1);
+    --maxw:1180px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--ink);color:var(--txt);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  ::selection{background:var(--accent);color:#09090b}
+  ::-webkit-scrollbar{width:11px}::-webkit-scrollbar-thumb{background:#23252c;border-radius:8px;border:3px solid var(--ink)}
+
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:90;opacity:.045;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  .ambient{position:fixed;inset:-20%;pointer-events:none;z-index:0;will-change:transform;animation:drift 26s ease-in-out infinite;
+    background:
+      radial-gradient(48vw 42vh at 80% -6%, rgba(200,242,78,.06), transparent 62%),
+      radial-gradient(42vw 36vh at 8% 10%, rgba(120,140,255,.045), transparent 60%),
+      radial-gradient(40vw 40vh at 60% 110%, rgba(200,242,78,.035), transparent 60%)}
+  @keyframes drift{0%{transform:translate3d(0,0,0)}50%{transform:translate3d(-2.5%,2%,0)}100%{transform:translate3d(0,0,0)}}
+
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px;position:relative;z-index:1}
+  section{padding:130px 0;position:relative;z-index:1}
+  @media(max-width:760px){ section{padding:80px 0} .wrap{padding:0 18px} }
+
+  nav{position:fixed;top:18px;left:0;right:0;z-index:70;display:flex;justify-content:center;pointer-events:none}
+  .navpill{pointer-events:auto;display:flex;align-items:center;gap:26px;padding:9px 9px 9px 20px;
+    background:rgba(14,15,18,.6);border:1px solid var(--line);border-radius:999px;backdrop-filter:blur(18px);
+    box-shadow:0 10px 40px rgba(0,0,0,.45);transition:background .5s var(--ease)}
+  .brand{font-family:var(--serif);font-weight:500;font-size:22px;letter-spacing:.005em;display:flex;align-items:center;gap:9px}
+  .brand .seed{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px rgba(200,242,78,.7)}
+  .navlinks{display:flex;gap:24px;font-size:13.5px;color:var(--mut)}
+  .navlinks a{transition:color .3s var(--ease)}.navlinks a:hover{color:var(--txt)}
+  .navcta{display:inline-flex;align-items:center;gap:10px;background:var(--accent);color:#09090b;font-weight:600;font-size:13.5px;
+    padding:8px 8px 8px 16px;border-radius:999px;transition:transform .25s var(--ease),filter .3s;will-change:transform}
+  .navcta:hover{filter:brightness(1.05)}
+  .navcta .pip{width:24px;height:24px;border-radius:50%;background:rgba(9,9,11,.18);display:grid;place-items:center}
+  .navtoggle{display:none;width:38px;height:38px;border:none;background:transparent;cursor:pointer}
+  @media(max-width:760px){ .navlinks{display:none} .navtoggle{display:grid;place-items:center} .navpill{gap:14px} }
+
+  .btn{display:inline-flex;align-items:center;gap:14px;border:none;cursor:pointer;font-family:inherit;font-weight:600;font-size:15px;
+    padding:13px 14px 13px 24px;border-radius:999px;transition:transform .25s var(--ease),filter .3s,background .3s;will-change:transform}
+  .btn .pip{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;transition:transform .45s var(--ease)}
+  .btn:hover .pip{transform:translate(3px,-2px) scale(1.06)}
+  .btn-primary{background:var(--accent);color:#09090b}.btn-primary .pip{background:rgba(9,9,11,.18)}
+  .btn-primary:hover{filter:brightness(1.06)}
+  .btn-ghost{background:rgba(255,255,255,.045);color:var(--txt);border:1px solid var(--line);padding:13px 24px}
+  .btn-ghost:hover{background:rgba(255,255,255,.08)}
+
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:10.5px;letter-spacing:.24em;
+    text-transform:uppercase;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:8px 14px;background:rgba(255,255,255,.02)}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px rgba(200,242,78,.8);animation:pulse 3.2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+  h1,h2,h3{margin:0;font-weight:400}
+  .display{font-family:var(--serif);font-weight:500;line-height:1.02;letter-spacing:-.01em;font-optical-sizing:auto}
+  h1.display{font-size:clamp(44px,7vw,90px)}
+  h2.display{font-size:clamp(32px,4.6vw,58px);line-height:1.05}
+  .display .it{font-style:italic;font-weight:400;color:var(--accent-deep)}
+  .lead{color:var(--mut);font-size:clamp(16px,1.5vw,20px);max-width:54ch;line-height:1.65}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--mut2)}
+
+  .bezel{background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:30px;padding:7px;box-shadow:0 40px 100px -40px rgba(0,0,0,.8)}
+  .bezel>.core{background:var(--surf);border-radius:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);overflow:hidden}
+  .shot{display:block;width:100%;height:auto}
+  .winbar{display:flex;align-items:center;gap:7px;padding:12px 16px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.025),transparent)}
+  .winbar .d{width:10px;height:10px;border-radius:50%;background:#2a2c33}
+  .winbar .u{margin-left:12px;font-family:var(--mono);font-size:11px;color:var(--mut2)}
+
+  /* hero */
+  .hero{padding-top:188px;padding-bottom:40px}
+  .hero .lead{margin-top:26px}
+  .hero .cta{display:flex;gap:14px;margin-top:38px;flex-wrap:wrap}
+  .hero-h1{max-width:15ch}
+  .hero-h1 .ln{display:block;overflow:hidden;padding-bottom:.04em}
+  .hero-h1 .ln>span{display:block;transform:translateY(112%);transition:transform 1.05s var(--ease)}
+  .hero-h1.in .ln:nth-child(1)>span{transform:none;transition-delay:.05s}
+  .hero-h1.in .ln:nth-child(2)>span{transform:none;transition-delay:.16s}
+  .hero-visual{margin-top:76px;transform:perspective(1900px) rotateX(7deg);transform-origin:50% 0}
+  .heroGraph{height:clamp(360px,52vh,560px);position:relative}
+  .stripstats{display:flex;gap:42px;flex-wrap:wrap;margin-top:54px;padding-top:30px;border-top:1px solid var(--line)}
+  .stripstats .s .n{font-family:var(--serif);font-weight:500;font-size:42px;line-height:1}
+  .stripstats .s .l{color:var(--mut2);font-size:12.5px;font-family:var(--mono);letter-spacing:.03em;margin-top:6px}
+
+  .thesis p{font-family:var(--serif);font-weight:400;font-size:clamp(27px,3.4vw,44px);line-height:1.24;letter-spacing:-.005em}
+  .thesis .muted{color:var(--mut2)}
+
+  .bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
+  .cell{background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:26px;padding:30px;position:relative;overflow:hidden;
+    transition:border-color .5s var(--ease),background .5s var(--ease),transform .5s var(--ease)}
+  .cell:hover{border-color:var(--line2);background:rgba(255,255,255,.045);transform:translateY(-4px)}
+  .cell .ic{width:34px;height:34px;color:var(--accent);margin-bottom:18px;transition:transform .6s var(--ease)}
+  .cell:hover .ic{transform:scale(1.1) rotate(-4deg)}
+  .cell h3{font-size:21px;font-weight:600;margin-bottom:9px;letter-spacing:-.01em}
+  .cell p{color:var(--mut);font-size:14.5px;line-height:1.6}
+  .c4{grid-column:span 4}.c2{grid-column:span 2}
+  .cell.big{padding:34px}.cell.big h3{font-size:27px}
+  .miniglow{position:absolute;right:-40px;bottom:-40px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(200,242,78,.11),transparent 70%);pointer-events:none}
+  @media(max-width:900px){ .bento{grid-template-columns:1fr} .c4,.c2{grid-column:span 1} }
+
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+  .split.rev .txt{order:2}
+  @media(max-width:860px){ .split{grid-template-columns:1fr;gap:34px} .split.rev .txt{order:0} }
+  .featline{display:flex;gap:13px;margin-top:18px;color:var(--mut);font-size:14.5px}
+  .featline .tick{color:var(--accent);flex:0 0 auto;margin-top:2px}
+
+  /* plugin */
+  .code{font-family:var(--mono);font-size:13px;line-height:1.7;color:#cdd2cf;background:var(--ink2);border:none;border-radius:18px;padding:20px 22px;overflow-x:auto;white-space:pre;margin:0}
+  .code .k{color:var(--accent-deep)}.code .s{color:#9fb0c9}.code .c{color:var(--mut2)}
+  .marquee{margin-top:26px;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+  .marquee .track{display:flex;gap:12px;width:max-content;animation:scrollx 24s linear infinite}
+  .marquee .a{font-family:var(--mono);font-size:12px;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:8px 16px;white-space:nowrap}
+  @keyframes scrollx{to{transform:translateX(-50%)}}
+
+  /* comparison */
+  .cmp{width:100%;border-collapse:collapse;font-size:15px}
+  .cmp th,.cmp td{padding:18px 20px;text-align:left;border-bottom:1px solid var(--line)}
+  .cmp thead th{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut2);font-weight:500}
+  .cmp thead th.us{color:var(--accent-deep)}
+  .cmp td.feat{color:var(--txt)}
+  .cmp td.us{color:var(--txt)}.cmp td.them{color:var(--mut2)}
+  .cmp .ck{color:var(--accent);font-weight:700}
+  .cmp tr:hover td{background:rgba(255,255,255,.018)}
+
+  /* faq */
+  .faq details{border-bottom:1px solid var(--line);padding:6px 0}
+  .faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:20px;padding:22px 4px;font-size:19px;font-family:var(--serif);font-weight:500}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary .pm{color:var(--accent);font-family:var(--sans);font-size:22px;transition:transform .4s var(--ease)}
+  .faq details[open] summary .pm{transform:rotate(45deg)}
+  .faq .ans{color:var(--mut);font-size:15px;line-height:1.7;padding:0 4px 24px;max-width:70ch}
+
+  .final{text-align:center}
+  .final .cta{display:flex;justify-content:center;margin-top:40px}
+  footer{border-top:1px solid var(--line);padding:46px 0 60px}
+  .foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:18px;color:var(--mut2);font-size:13px}
+  .foot a{color:var(--mut)}.foot a:hover{color:var(--txt)}
+
+  .reveal{opacity:0;transform:translateY(32px);filter:blur(8px);transition:opacity 1s var(--ease),transform 1s var(--ease),filter 1s var(--ease)}
+  .reveal.in{opacity:1;transform:none;filter:none}
+  .reveal.d1{transition-delay:.09s}.reveal.d2{transition-delay:.18s}.reveal.d3{transition-delay:.27s}
+  @media(prefers-reduced-motion:reduce){ .reveal,.hero-h1 .ln>span{opacity:1;transform:none;filter:none;transition:none} .ambient,.eyebrow .dot,.marquee .track{animation:none} .hero-visual{transform:none} }
+
+  .menu{position:fixed;inset:0;z-index:69;background:rgba(7,7,9,.88);backdrop-filter:blur(22px);display:flex;flex-direction:column;justify-content:center;gap:8px;padding:40px;opacity:0;pointer-events:none;transition:opacity .4s var(--ease)}
+  .menu.on{opacity:1;pointer-events:auto}
+  .menu a{font-family:var(--serif);font-weight:500;font-size:34px;color:var(--txt);padding:8px 0}
+  .menu .close{position:absolute;top:26px;right:26px;font-family:var(--mono);color:var(--mut);background:none;border:1px solid var(--line);border-radius:999px;padding:8px 14px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="ambient"></div>
+
+<nav>
+  <div class="navpill">
+    <a href="#top" class="brand"><span class="seed"></span>CORTEX</a>
+    <div class="navlinks">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#plugin">Plugin</a>
+      <a href="#compare">vs Obsidian</a>
+    </div>
+    <a href="/app" class="navcta">Open app<span class="pip">↗</span></a>
+    <button class="navtoggle" id="navtoggle" aria-label="Menu">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#ECEBE6" stroke-width="1.3"><path d="M3 6h14M3 13h14"/></svg>
+    </button>
+  </div>
+</nav>
+<div class="menu" id="menu">
+  <button class="close" id="menuclose">close</button>
+  <a href="#features">Features</a>
+  <a href="#how">How it works</a>
+  <a href="#plugin">Plugin</a>
+  <a href="#compare">vs Obsidian</a>
+  <a href="/app">Open app ↗</a>
+</div>
+
+<a id="top"></a>
+<section class="hero">
+  <div class="wrap">
+    <div class="reveal"><span class="eyebrow"><span class="dot"></span>Local-first second brain</span></div>
+    <h1 class="display hero-h1" style="margin-top:28px">
+      <span class="ln"><span>A second brain</span></span>
+      <span class="ln"><span>that keeps itself <em class="it">alive.</em></span></span>
+    </h1>
+    <p class="lead reveal d2">It captures, links, and resurfaces your notes on its own — by meaning, on your machine. No cloud, no busywork, no API keys.</p>
+    <div class="cta reveal d2">
+      <a href="/app" class="btn btn-primary mag">Open CORTEX<span class="pip">↗</span></a>
+      <a href="#how" class="btn btn-ghost">See how it thinks</a>
+    </div>
+    <div class="hero-visual reveal d3">
+      <div class="bezel"><div class="core">
+        <div class="winbar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="u">cortex — the living graph (live)</span></div>
+        <div class="heroGraph" id="heroGraph"></div>
+      </div></div>
+    </div>
+    <div class="stripstats reveal">
+      <div class="s"><div class="n">0</div><div class="l">bytes leave your device</div></div>
+      <div class="s"><div class="n">5</div><div class="l">layer memory stack</div></div>
+      <div class="s"><div class="n">&infin;</div><div class="l">notes, fully local</div></div>
+      <div class="s"><div class="n">$0</div><div class="l">no keys, no subscription</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="thesis">
+  <div class="wrap">
+    <p class="reveal">Most note apps are where ideas go to die.<br><span class="muted">You write, you never revisit, and the links never get made.</span><br>CORTEX is the opposite — it does the connecting for you.</p>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <div class="reveal" style="margin-bottom:46px;max-width:30ch">
+      <div class="kicker" style="margin-bottom:16px">What it does</div>
+      <h2 class="display">Intelligence that runs <span class="it">on your machine.</span></h2>
+    </div>
+    <div class="bento">
+      <div class="cell big c4 reveal">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <h3>Search by meaning, not keywords</h3>
+        <p>Ask in plain language. On-device embeddings find the note you meant — "automobile trouble" surfaces "my car won't start," no shared words required.</p>
+        <div class="miniglow"></div>
+      </div>
+      <div class="cell c2 reveal d1">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 3v18M3 12h18" opacity=".35"/><circle cx="12" cy="12" r="3"/><circle cx="12" cy="4" r="1.4"/><circle cx="12" cy="20" r="1.4"/><circle cx="4" cy="12" r="1.4"/><circle cx="20" cy="12" r="1.4"/></svg>
+        <h3>The Gardener</h3>
+        <p>A quiet agent that links related notes and sorts them into projects — automatically, in the background.</p>
+      </div>
+      <div class="cell c2 reveal">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>
+        <h3>Travel back in time</h3>
+        <p>Every note keeps its full history. See your vault exactly as it was on any past day.</p>
+      </div>
+      <div class="cell c2 reveal d1">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M4 7h16M4 12h16M4 17h16" opacity=".45"/><path d="M4 7h16"/></svg>
+        <h3>Five layers, one mind</h3>
+        <p>Stream → Projects → Areas → Library → Archive. Newest at your fingertips; the rest organizes itself.</p>
+      </div>
+      <div class="cell c2 reveal d2">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        <h3>Private by default</h3>
+        <p>A SQLite file on your disk. On-device model. Nothing phones home — there's no home to phone.</p>
+      </div>
+      <div class="cell c2 reveal d3">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="2.4"/><circle cx="18" cy="9" r="2.4"/><circle cx="9" cy="18" r="2.4"/><path d="M8 7l8 1.5M8 16l8-6" opacity=".45"/></svg>
+        <h3>A living graph</h3>
+        <p>Watch the web of your thinking assemble itself — connections you'd never have drawn by hand.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="split">
+      <div class="txt reveal">
+        <div class="kicker" style="margin-bottom:16px">Capture → connect</div>
+        <h2 class="display">Write it down.<br>It links <span class="it">itself.</span></h2>
+        <p class="lead" style="margin-top:22px">Drop in a thought and CORTEX does the rest: embeds it, files it into a project, and wires it to everything related — the moment you hit save.</p>
+        <div class="featline"><span class="tick">→</span><span>Auto-linking by meaning, the instant a note is saved.</span></div>
+        <div class="featline"><span class="tick">→</span><span>Ask your vault a question; get an answer with sources.</span></div>
+        <div class="featline"><span class="tick">→</span><span>Markdown + wikilinks — losslessly importable from Obsidian.</span></div>
+      </div>
+      <div class="reveal d1">
+        <div class="bezel"><div class="core">
+          <div class="winbar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="u">cortex/app — editor</span></div>
+          <img class="shot" src="/shots/editor.png" alt="The CORTEX editor with related-by-meaning and an ask box" loading="lazy" />
+        </div></div>
+      </div>
+    </div>
+    <div class="split rev" style="margin-top:108px">
+      <div class="txt reveal">
+        <div class="kicker" style="margin-bottom:16px">See the shape of your mind</div>
+        <h2 class="display">Every note,<br>in <span class="it">context.</span></h2>
+        <p class="lead" style="margin-top:22px">A five-layer stack and an insights view that show what you actually think about — top projects, hubs, streaks, and the notes quietly going stale.</p>
+        <div class="featline"><span class="tick">→</span><span>Spaced-repetition resurfacing so nothing valuable is forgotten.</span></div>
+        <div class="featline"><span class="tick">→</span><span>Tasks pulled straight from your notes' checkboxes.</span></div>
+      </div>
+      <div class="reveal d1">
+        <div class="bezel"><div class="core">
+          <div class="winbar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="u">cortex/app — insights</span></div>
+          <img class="shot" src="/shots/insights.png" alt="The CORTEX insights dashboard" loading="lazy" />
+        </div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="plugin">
+  <div class="wrap">
+    <div class="split">
+      <div class="txt reveal">
+        <div class="kicker" style="margin-bottom:16px">Bring your own agent</div>
+        <h2 class="display">Use your brain in <span class="it">any AI.</span></h2>
+        <p class="lead" style="margin-top:22px">CORTEX ships as a Model Context Protocol server — drop it into the agent you already use and let it capture and recall from your vault. One file, zero dependencies.</p>
+        <div class="marquee"><div class="track">
+          <span class="a">Claude Desktop</span><span class="a">Cursor</span><span class="a">Cline</span><span class="a">Continue</span><span class="a">Zed</span><span class="a">any MCP client</span>
+          <span class="a">Claude Desktop</span><span class="a">Cursor</span><span class="a">Cline</span><span class="a">Continue</span><span class="a">Zed</span><span class="a">any MCP client</span>
+        </div></div>
+      </div>
+      <div class="reveal d1">
+        <div class="bezel"><div class="core" style="padding:6px">
+<pre class="code"><span class="c">// claude_desktop_config.json</span>
+{
+  <span class="s">"mcpServers"</span>: {
+    <span class="k">"cortex"</span>: {
+      <span class="s">"command"</span>: <span class="s">"node"</span>,
+      <span class="s">"args"</span>: [<span class="s">"cortex/mcp.mjs"</span>],
+      <span class="s">"env"</span>: { <span class="s">"CORTEX_URL"</span>: <span class="s">"http://127.0.0.1:7002"</span> }
+    }
+  }
+}</pre>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="reveal" style="margin-bottom:40px;max-width:26ch">
+      <div class="kicker" style="margin-bottom:16px">The honest comparison</div>
+      <h2 class="display">Everything you love about Obsidian. <span class="it">Minus the busywork.</span></h2>
+    </div>
+    <div class="bezel reveal d1"><div class="core" style="padding:6px 6px 0">
+      <table class="cmp">
+        <thead><tr><th>&nbsp;</th><th class="us">CORTEX</th><th>Obsidian</th></tr></thead>
+        <tbody>
+          <tr><td class="feat">Local-first, plain-text, yours</td><td class="us"><span class="ck">✓</span> built in</td><td class="them">✓</td></tr>
+          <tr><td class="feat">Links made for you, automatically</td><td class="us"><span class="ck">✓</span> by meaning</td><td class="them">manual</td></tr>
+          <tr><td class="feat">Semantic search (by meaning)</td><td class="us"><span class="ck">✓</span> on-device</td><td class="them">plugin + setup</td></tr>
+          <tr><td class="feat">Self-maintaining (sorts, resurfaces)</td><td class="us"><span class="ck">✓</span> the Gardener</td><td class="them">—</td></tr>
+          <tr><td class="feat">Time-travel any note</td><td class="us"><span class="ck">✓</span></td><td class="them">version plugin</td></tr>
+          <tr><td class="feat">Works inside your AI agent (MCP)</td><td class="us"><span class="ck">✓</span> one file</td><td class="them">—</td></tr>
+          <tr><td class="feat">Price</td><td class="us"><span class="ck">✓</span> free, local</td><td class="them">free + paid sync</td></tr>
+        </tbody>
+      </table>
+    </div></div>
+  </div>
+</section>
+
+<section id="private">
+  <div class="wrap">
+    <div class="bezel reveal"><div class="core" style="padding:clamp(34px,5vw,68px)">
+      <div class="kicker" style="margin-bottom:18px">Yours, only</div>
+      <h2 class="display" style="max-width:18ch">Your second brain shouldn't <span class="it">phone home.</span></h2>
+      <p class="lead" style="margin-top:24px">No accounts. No telemetry. No third party. Your notes live in a plain SQLite file you can hold, back up, and read — and the AI runs on a model that sits on your disk.</p>
+      <div class="bento" style="margin-top:40px;grid-template-columns:repeat(3,1fr)">
+        <div class="cell c2"><h3 style="font-size:18px">On-device embeddings</h3><p>MiniLM runs locally. Semantic search with nothing sent anywhere.</p></div>
+        <div class="cell c2"><h3 style="font-size:18px">Plain-text portable</h3><p>Export to Markdown any time. No lock-in, ever.</p></div>
+        <div class="cell c2"><h3 style="font-size:18px">Open by design</h3><p>A documented local REST API at <span style="font-family:var(--mono);color:var(--accent-deep)">/api/spec</span>.</p></div>
+      </div>
+    </div></div>
+  </div>
+</section>
+
+<section class="faq">
+  <div class="wrap" style="max-width:840px">
+    <div class="reveal" style="margin-bottom:24px"><div class="kicker">Questions</div></div>
+    <div class="reveal d1">
+      <details open><summary>Is it really 100% local?<span class="pm">+</span></summary><div class="ans">Yes. Your notes live in a SQLite file on your machine and the embedding model runs on-device. There are no accounts, no servers, and nothing is sent anywhere. The optional AI-agent plugin only talks to your own local CORTEX.</div></details>
+      <details><summary>Do I need API keys or a subscription?<span class="pm">+</span></summary><div class="ans">No. Semantic search, auto-linking, and the Gardener all run for free on a local model — no OpenAI key, no monthly fee.</div></details>
+      <details><summary>Can I bring my Obsidian vault?<span class="pm">+</span></summary><div class="ans">Yes — CORTEX imports a folder of Markdown losslessly, including <code>[[wikilinks]]</code>, and can export back to Markdown whenever you want. No lock-in.</div></details>
+      <details><summary>What does "works in any agent" mean?<span class="pm">+</span></summary><div class="ans">CORTEX ships a Model Context Protocol (MCP) server — a single zero-dependency file. Point Claude Desktop, Cursor, Cline, Continue, or any MCP client at it and your agent can capture to and recall from your brain.</div></details>
+      <details><summary>What's the "Gardener"?<span class="pm">+</span></summary><div class="ans">A background agent that links related notes by meaning, sorts them into projects, and resurfaces stale ones. Linking is automatic; the judgement calls land in a review queue you control. It never rewrites your words.</div></details>
+    </div>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap">
+    <div class="kicker reveal" style="margin-bottom:20px">Start remembering</div>
+    <h2 class="display reveal d1" style="max-width:14ch;margin:0 auto">Stop filing. Start <span class="it">thinking.</span></h2>
+    <div class="cta reveal d2">
+      <a href="/app" class="btn btn-primary mag">Open CORTEX<span class="pip">↗</span></a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <div class="brand" style="font-size:18px"><span class="seed"></span>CORTEX</div>
+    <div>A local-first, AI-native second brain.</div>
+    <div><a href="/app">App</a> &nbsp;·&nbsp; <a href="/api/spec">API</a></div>
+  </div>
+</footer>
+
+<script src="/graph-view.js"></script>
+<script>
+  // nav firms up on scroll
+  const pill = document.querySelector('.navpill');
+  addEventListener('scroll', () => { pill.style.background = scrollY > 40 ? 'rgba(14,15,18,.82)' : 'rgba(14,15,18,.6)'; }, { passive: true });
+
+  // headline line-clip reveal on load
+  requestAnimationFrame(() => document.querySelector('.hero-h1').classList.add('in'));
+
+  // staggered scroll reveals
+  const io = new IntersectionObserver((es) => {
+    for (const e of es) if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  }, { threshold: 0.1, rootMargin: '0px 0px -7% 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // magnetic buttons (cursor-follow)
+  document.querySelectorAll('.mag, .navcta').forEach(btn => {
+    btn.addEventListener('pointermove', e => {
+      const r = btn.getBoundingClientRect();
+      const mx = e.clientX - (r.left + r.width / 2), my = e.clientY - (r.top + r.height / 2);
+      btn.style.transform = `translate(${mx * 0.18}px, ${my * 0.32}px)`;
+    });
+    btn.addEventListener('pointerleave', () => { btn.style.transform = ''; });
+  });
+
+  // live hero graph (real /api/graph, animated, non-interactive backdrop)
+  try {
+    if (window.CortexGraph) {
+      const g = window.CortexGraph.init(document.getElementById('heroGraph'), {});
+      document.getElementById('heroGraph').style.pointerEvents = 'none';
+    }
+  } catch (_) {}
+
+  // mobile menu
+  const menu = document.getElementById('menu');
+  document.getElementById('navtoggle').onclick = () => menu.classList.add('on');
+  document.getElementById('menuclose').onclick = () => menu.classList.remove('on');
+  menu.querySelectorAll('a').forEach(a => a.onclick = () => menu.classList.remove('on'));
+</script>
+</body>
+</html>

@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CORTEX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0b0d; --bg2:#101216; --panel:#14171c; --panel2:#191d23;
+    --line:#23272f; --line2:#2c313a;
+    --txt:#e8eaed; --mut:#8b929c; --mut2:#5b626c;
+    --lime:#c6ff3a; --lime-dim:#9ccc2e; --violet:#9b8cff; --red:#ff6b6b;
+    --r:14px; --r2:10px;
+    --mono:'JetBrains Mono',ui-monospace,monospace; --sans:'Space Grotesk',system-ui,sans-serif;
+    --serif:'Instrument Serif',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow:hidden}
+  button{font-family:inherit;cursor:pointer}
+  :focus-visible{outline:2px solid var(--lime-dim);outline-offset:2px;border-radius:6px}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#262b33;border-radius:8px;border:2px solid var(--bg)}
+  ::-webkit-scrollbar-track{background:transparent}
+  .app{display:grid;grid-template-columns:248px 1fr;grid-template-rows:56px 1fr;height:100vh}
+
+  /* top bar */
+  .top{grid-column:1/3;display:flex;align-items:center;gap:16px;padding:0 18px;border-bottom:1px solid var(--line);background:var(--bg2)}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:700;letter-spacing:.14em;font-size:13px}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--lime);box-shadow:0 0 12px var(--lime)}
+  .search{flex:1;max-width:620px;display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:7px 12px;transition:border-color .15s}
+  .search:focus-within{border-color:var(--line2)}
+  .search input{flex:1;background:none;border:none;outline:none;color:var(--txt);font-family:inherit;font-size:13.5px}
+  .search .mode{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:7px;overflow:hidden}
+  .search .mode button{background:none;border:none;color:var(--mut);font-size:11px;padding:4px 9px;letter-spacing:.03em}
+  .search .mode button.on{background:var(--lime);color:#0a0b0d;font-weight:600}
+  .top .spacer{flex:1}
+  .btn{background:var(--lime);color:#0a0b0d;border:none;border-radius:9px;padding:8px 14px;font-weight:600;font-size:13px;transition:transform .1s,filter .15s}
+  .btn:hover{filter:brightness(1.08)}.btn:active{transform:translateY(1px)}
+  .btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line2)}
+  .btn.ghost:hover{background:var(--panel)}
+  .btn.sm{padding:5px 10px;font-size:12px;border-radius:8px}
+
+  /* sidebar */
+  .side{border-right:1px solid var(--line);background:var(--bg2);padding:12px 10px;overflow-y:auto;display:flex;flex-direction:column;gap:3px}
+  .side .grp{font-size:10.5px;letter-spacing:.16em;color:var(--mut2);text-transform:uppercase;margin:14px 8px 4px}
+  .nav{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:10px;color:var(--mut);font-size:13.5px;font-weight:500;border:1px solid transparent;transition:background .12s,color .12s}
+  .nav:hover{background:var(--panel);color:var(--txt)}
+  .nav.on{background:var(--panel2);color:var(--txt);border-color:var(--line2)}
+  .nav .ic{width:18px;text-align:center;opacity:.9;font-size:14px}
+  .nav .ct{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--mut2);background:var(--bg);padding:1px 7px;border-radius:20px}
+  .nav.on .ct{color:var(--lime-dim)}
+  .layerpill{font-family:var(--mono);font-size:10px;color:var(--mut2);width:16px}
+
+  /* main */
+  .main{overflow-y:auto;padding:26px 30px 80px;position:relative}
+  .head{margin-bottom:20px}
+  .head h1{margin:0 0 4px;font-family:var(--serif);font-size:38px;font-weight:400;letter-spacing:0;line-height:1.05}
+  .head p{margin:0;color:var(--mut);font-size:13.5px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:13px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:15px 16px;transition:border-color .15s,transform .1s,background .15s;cursor:pointer}
+  .card:hover{border-color:var(--line2);background:var(--panel2);transform:translateY(-1px)}
+  .card h3{margin:0 0 6px;font-size:14.5px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .card .ex{color:var(--mut);font-size:12.5px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;min-height:34px}
+  .card .meta{display:flex;align-items:center;gap:8px;margin-top:11px;flex-wrap:wrap}
+  .tag{font-family:var(--mono);font-size:10.5px;color:var(--mut);background:var(--bg);border:1px solid var(--line);padding:2px 8px;border-radius:20px}
+  .tag.proj{color:var(--lime-dim);border-color:#2f3a1a;background:#161a0d}
+  .tag.time{color:var(--mut2);border:none;background:none;margin-left:auto;padding:0}
+  .empty{color:var(--mut2);text-align:center;padding:70px 20px;font-size:14px}
+  .empty .big{font-size:40px;margin-bottom:10px;opacity:.5}
+
+  /* stat tiles */
+  .stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:22px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+  .stat .n{font-size:30px;font-weight:700;letter-spacing:-.02em;font-family:var(--mono)}
+  .stat .n.lime{color:var(--lime)}
+  .stat .l{color:var(--mut);font-size:12px;margin-top:3px}
+  .section-t{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut2);margin:24px 0 12px;font-weight:600}
+
+  /* graph */
+  #graphWrap{position:absolute;inset:0;}
+  .graph-hint{position:absolute;left:30px;bottom:24px;color:var(--mut2);font-size:12px;font-family:var(--mono);pointer-events:none}
+  .gsearch{position:absolute;left:30px;top:22px;z-index:5;background:var(--panel2);border:1px solid var(--line2);border-radius:9px;color:var(--txt);font-family:inherit;font-size:13px;padding:8px 13px;outline:none;width:230px}
+  .gsearch:focus{border-color:var(--lime-dim)}
+
+  /* editor drawer */
+  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .2s;z-index:40}
+  .scrim.on{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;height:100vh;width:min(680px,94vw);background:var(--bg2);border-left:1px solid var(--line2);transform:translateX(100%);transition:transform .24s cubic-bezier(.4,0,.2,1);z-index:50;display:flex;flex-direction:column}
+  .drawer.on{transform:none}
+  .drawer .dhead{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
+  .drawer .dbody{flex:1;overflow-y:auto;padding:18px}
+  .drawer .dfoot{display:flex;gap:10px;align-items:center;padding:12px 18px;border-top:1px solid var(--line)}
+  .ti{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--txt);font-family:inherit;padding:11px 13px;outline:none;font-size:15px;font-weight:600}
+  .ti:focus{border-color:var(--line2)}
+  .ta{width:100%;min-height:340px;background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--txt);font-family:var(--mono);font-size:13px;line-height:1.65;padding:13px;outline:none;resize:vertical;margin-top:10px}
+  .ta:focus{border-color:var(--line2)}
+  .ti.tags{font-family:var(--mono);font-size:12.5px;font-weight:400;margin-top:10px}
+  .rel{margin-top:18px}
+  .rel .ri{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;margin-bottom:7px;cursor:pointer;font-size:13px}
+  .rel .ri:hover{border-color:var(--line2);background:var(--panel)}
+  .rel .ri .sc{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--lime-dim)}
+  .askbox{margin-top:18px;border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--panel)}
+  .askbox .ans{margin-top:10px;font-size:13px;color:var(--mut);white-space:pre-wrap}
+
+  /* suggestions / tasks / review */
+  .row{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:9px}
+  .row:hover{border-color:var(--line2)}
+  .row .gr{margin-left:auto;display:flex;gap:7px}
+  .chk{width:17px;height:17px;border:1.5px solid var(--mut2);border-radius:5px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:var(--lime)}
+  .chk.done{background:var(--lime);border-color:var(--lime);color:#0a0b0d}
+  .pill{font-family:var(--mono);font-size:10.5px;color:#0a0b0d;background:var(--lime);padding:2px 8px;border-radius:20px;font-weight:600}
+  /* command palette */
+  .pal{position:fixed;inset:0;display:none;z-index:70;background:rgba(0,0,0,.5);align-items:flex-start;justify-content:center}
+  .pal.on{display:flex}
+  .pal .box{margin-top:12vh;width:min(620px,92vw);background:var(--panel2);border:1px solid var(--line2);border-radius:14px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+  .pal input{width:100%;background:none;border:none;outline:none;color:var(--txt);font-family:inherit;font-size:16px;padding:16px 18px;border-bottom:1px solid var(--line)}
+  .pal .res{max-height:52vh;overflow-y:auto;padding:6px}
+  .pal .it{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;font-size:13.5px;color:var(--mut);cursor:pointer}
+  .pal .it.sel,.pal .it:hover{background:var(--panel);color:var(--txt)}
+  .pal .it .k{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--mut2)}
+  .pal .it .ic{width:16px;text-align:center}
+  /* markdown preview */
+  .tabs{display:flex;gap:5px;margin-top:10px}
+  .tabs button{background:var(--bg);border:1px solid var(--line);color:var(--mut);font-size:11.5px;padding:4px 13px;border-radius:7px}
+  .tabs button.on{background:var(--panel2);color:var(--txt);border-color:var(--line2)}
+  .md{padding:14px 15px;border:1px solid var(--line);border-radius:10px;min-height:330px;margin-top:10px;font-size:14px;line-height:1.7;display:none}
+  .md.on{display:block}
+  .md h1,.md h2,.md h3{font-weight:600;margin:.7em 0 .35em;line-height:1.25}
+  .md .mdh1{font-size:21px}.md h2{font-size:17px}.md h3{font-size:15px}
+  .md code{font-family:var(--mono);background:var(--bg);padding:1px 6px;border-radius:5px;font-size:12.5px}
+  .md pre.cb{font-family:var(--mono);background:var(--bg);padding:12px;border-radius:9px;font-size:12.5px;overflow-x:auto;white-space:pre-wrap;margin:.5em 0}
+  .md ul{margin:.4em 0;padding-left:20px}.md li{margin:3px 0}
+  .md p{margin:.5em 0}
+  .md .mdtask{padding:2px 0}.md .mdtask.done{color:var(--mut2);text-decoration:line-through}
+  .md a.wl{color:var(--lime-dim);cursor:pointer}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--panel2);border:1px solid var(--line2);color:var(--txt);padding:10px 18px;border-radius:10px;font-size:13px;opacity:0;transition:all .2s;z-index:60}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line2);border-top-color:var(--lime);border-radius:50%;animation:s .7s linear infinite}
+  @keyframes s{to{transform:rotate(360deg)}}
+  a.x{color:var(--lime-dim);text-decoration:none}
+  /* mobile */
+  .hamb{display:none;background:none;border:none;color:var(--txt);font-size:20px;padding:0 6px 0 0;cursor:pointer}
+  .scrim2{position:fixed;inset:56px 0 0 0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s;z-index:34}
+  @media (max-width:780px){
+    .hamb{display:inline-flex}
+    .app{grid-template-columns:1fr}
+    .side{position:fixed;left:0;top:56px;bottom:0;width:240px;transform:translateX(-100%);transition:transform .22s cubic-bezier(.4,0,.2,1);z-index:36;box-shadow:0 0 50px rgba(0,0,0,.6)}
+    .side.open{transform:none}
+    .side.open ~ .scrim2,.scrim2.on{opacity:1;pointer-events:auto}
+    .main{padding:18px 15px 90px}
+    .grid{grid-template-columns:1fr}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .drawer{width:100vw}
+    .brand{font-size:12px}
+    .search{max-width:none}
+    .search input{font-size:13px}
+    .top{gap:10px;padding:0 12px}
+    .top .btn{padding:7px 11px;font-size:12px}
+    .nl{display:none}
+    #newBtn{font-size:17px;padding:6px 12px;line-height:1}
+    .head h1{font-size:21px}
+  }
+  @media (max-width:460px){ .search .mode{display:none} .stats{grid-template-columns:1fr} #gardenBtn{display:none} }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <button class="hamb" id="hamb">☰</button>
+    <div class="brand"><span class="dot"></span>CORTEX</div>
+    <div class="search">
+      <span style="color:var(--mut2)">⌕</span>
+      <input id="q" placeholder="Search your brain…  (try a concept, not just a keyword)" />
+      <div class="mode">
+        <button id="mSem" class="on">meaning</button>
+        <button id="mKey">keyword</button>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn ghost sm" id="gardenBtn">↻ Garden</button>
+    <button class="btn" id="newBtn">＋<span class="nl"> New note</span></button>
+  </div>
+
+  <div class="side" id="side"></div>
+  <div class="main" id="main"></div>
+  <div class="scrim2" id="scrim2"></div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="drawer" id="drawer">
+  <div class="dhead">
+    <input class="ti" id="eTitle" placeholder="Title" style="font-size:17px" />
+    <button class="btn ghost sm" id="eClose">esc</button>
+  </div>
+  <div class="dbody">
+    <input class="ti tags" id="eTags" placeholder="tags, comma, separated" />
+    <div class="tabs"><button id="tabWrite" class="on">Write</button><button id="tabPrev">Preview</button></div>
+    <textarea class="ta" id="eBody" placeholder="Write in markdown…  link notes with [[note-id]]  ·  tasks with - [ ]"></textarea>
+    <div class="md" id="eMd"></div>
+    <div class="askbox">
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="ti" id="askQ" placeholder="Ask this note + related…" style="font-size:13px;font-weight:400" />
+        <button class="btn sm" id="askBtn">Ask</button>
+      </div>
+      <div class="ans" id="askA"></div>
+    </div>
+    <div class="rel" id="eRel"></div>
+    <div class="rel" id="eBack"></div>
+  </div>
+  <div class="dfoot">
+    <button class="btn" id="eSave">Save</button>
+    <button class="btn ghost sm" id="eDel" style="color:var(--red);border-color:#3a2326">Delete</button>
+    <span id="eMeta" style="margin-left:auto;color:var(--mut2);font-size:11px;font-family:var(--mono)"></span>
+  </div>
+</div>
+<div class="pal" id="pal"><div class="box"><input id="palQ" placeholder="Type a command, or search your brain…" /><div class="res" id="palRes"></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script src="/graph-view.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const el = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; };
+const esc = s => (s||'').replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const api = async (m, p, b) => { const r = await fetch(p, { method:m, headers:{'content-type':'application/json'}, body: b?JSON.stringify(b):undefined }); if(!r.ok && r.status!==404) throw new Error((await r.text()).slice(0,200)); return r.json(); };
+const ago = ms => { if(!ms) return ''; const s=(Date.now()-ms)/1000; if(s<60)return'just now'; if(s<3600)return Math.floor(s/60)+'m ago'; if(s<86400)return Math.floor(s/3600)+'h ago'; const d=Math.floor(s/86400); if(d<30)return d+'d ago'; return new Date(ms).toLocaleDateString(); };
+let toastT; const toast = m => { const t=$('#toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),1900); };
+
+const LAYERS = [
+  {k:'stream',ic:'≡',label:'Stream',n:1},
+  {k:'projects',ic:'◆',label:'Projects',n:2},
+  {k:'areas',ic:'#',label:'Areas',n:3},
+  {k:'library',ic:'❋',label:'Library',n:4},
+  {k:'archive',ic:'⏾',label:'Archive',n:5},
+];
+const TOOLS = [
+  {k:'tasks',ic:'☑',label:'Tasks'},
+  {k:'review',ic:'↺',label:'Review'},
+  {k:'suggest',ic:'✦',label:'Suggestions'},
+  {k:'insights',ic:'▦',label:'Insights'},
+  {k:'settings',ic:'⚙',label:'Settings'},
+];
+let view = 'stream', counts = {}, graph = null;
+
+function renderSide(){
+  const s = $('#side'); s.innerHTML='';
+  s.append(el('div','grp','The 5 layers'));
+  LAYERS.forEach(L=>{
+    const n = el('div', 'nav'+(view===L.k?' on':''));
+    n.innerHTML = `<span class="layerpill">${L.n}</span><span class="ic">${L.ic}</span>${L.label}`;
+    if(counts[L.k]!=null) n.append(el('span','ct',String(counts[L.k])));
+    n.onclick=()=>go(L.k); s.append(n);
+  });
+  s.append(el('div','grp','Work'));
+  TOOLS.forEach(L=>{
+    const n = el('div','nav'+(view===L.k?' on':''));
+    n.innerHTML = `<span class="ic">${L.ic}</span>${L.label}`;
+    if(counts[L.k]!=null && counts[L.k]>0) n.append(el('span','ct',String(counts[L.k])));
+    n.onclick=()=>go(L.k); s.append(n);
+  });
+  const today = el('div','nav'); today.innerHTML='<span class="ic">◷</span>Today'; today.onclick=openToday; s.append(el('div','grp','Quick')); s.append(today);
+}
+
+function noteCard(n){
+  const c = el('div','card');
+  c.innerHTML = `<h3>${esc(n.title||'Untitled')}</h3><div class="ex">${esc((n.content||'').replace(/[#*>`\[\]]/g,'').slice(0,160))}</div>`;
+  const meta = el('div','meta');
+  if(n.project) meta.append(el('span','tag proj','◆ '+esc(n.project)));
+  (n.tags||[]).slice(0,3).forEach(t=>meta.append(el('span','tag','#'+esc(t))));
+  if(n.score!=null) meta.append(el('span','tag','◑ '+n.score));
+  meta.append(el('span','tag time',ago(n.updated_at||n.created_at)));
+  c.append(meta); c.onclick=()=>openNote(n.id); return c;
+}
+
+async function go(v){ view=v; if(window.innerWidth<=780){$('#side').classList.remove('open');$('#scrim2').classList.remove('on');} renderSide(); const m=$('#main'); m.innerHTML='<div class="empty"><span class="spin"></span></div>';
+  try{ await VIEWS[v](m); }catch(e){ m.innerHTML='<div class="empty">'+esc(e.message)+'</div>'; }
+  renderSide();
+}
+
+const VIEWS = {
+  async stream(m){
+    const notes = await api('GET','/api/notes/recent?limit=40');
+    counts.stream = notes.length;
+    m.innerHTML=''; m.append(headEl('Stream','Your latest captures — newest first'));
+    if(!notes.length) return m.append(emptyEl('≡','Nothing captured yet','Hit “New note” or capture a thought.'));
+    const g=el('div','grid'); notes.forEach(n=>g.append(noteCard(n))); m.append(g);
+  },
+  async projects(m){
+    const ps = await api('GET','/api/projects'); counts.projects=ps.length;
+    m.innerHTML=''; m.append(headEl('Projects','Auto-classified by meaning — the Gardener maintains these'));
+    if(!ps.length) return m.append(emptyEl('◆','No projects yet','Add a few notes, then run the Gardener.'));
+    for(const p of ps){
+      m.append(el('div','section-t','◆ '+esc(p.project)+' · '+p.count));
+      const notes = await api('GET','/api/projects/'+encodeURIComponent(p.project)+'?limit=8');
+      const g=el('div','grid'); notes.forEach(n=>g.append(noteCard(n))); m.append(g);
+    }
+  },
+  async areas(m){
+    const L = await api('GET','/api/layers'); const areas=(L.layers.find(x=>x.key==='areas')||{}).items||[];
+    counts.areas=areas.length; m.innerHTML=''; m.append(headEl('Areas','Themes across your vault, by tag'));
+    if(!areas.length) return m.append(emptyEl('#','No tags yet','Tag your notes to grow areas.'));
+    const g=el('div','grid');
+    areas.forEach(a=>{ const c=el('div','card'); c.innerHTML=`<h3>#${esc(a.tag)}</h3><div class="ex">${a.count} note${a.count===1?'':'s'}</div>`; c.onclick=()=>searchTag(a.tag); g.append(c); });
+    m.append(g);
+  },
+  async library(m){
+    m.innerHTML=''; const wrap=el('div'); wrap.id='graphWrap'; m.append(wrap);
+    const gs=el('input','gsearch'); gs.placeholder='Filter the graph…'; gs.oninput=()=>{ if(graph&&graph.search)graph.search(gs.value); };
+    m.append(gs);
+    m.append(el('div','graph-hint','LIBRARY · drag to pan · scroll to zoom · click a node to open · legend filters by project'));
+    if(graph&&graph.destroy)graph.destroy();
+    graph = window.CortexGraph.init(wrap,{onSelect:openNote});
+    const g = await api('GET','/api/graph'); counts.library=g.nodes.length;
+  },
+  async archive(m){
+    const L = await api('GET','/api/layers'); const ar=(L.layers.find(x=>x.key==='archive')||{});
+    counts.archive=ar.count||0; m.innerHTML=''; m.append(headEl('Archive','Resting — untouched for 30+ days'));
+    const items=ar.items||[]; if(!items.length) return m.append(emptyEl('⏾','Nothing resting','Everything is fresh.'));
+    const g=el('div','grid'); items.forEach(n=>g.append(noteCard(n))); m.append(g);
+  },
+  async tasks(m){
+    const ts = await api('GET','/api/tasks'); const open=ts.filter(t=>!t.done); counts.tasks=open.length;
+    m.innerHTML=''; m.append(headEl('Tasks','Pulled from your notes’ checkboxes'));
+    if(!ts.length) return m.append(emptyEl('☑','No tasks','Add - [ ] lines to any note.'));
+    ts.sort((a,b)=>(a.done-b.done)||((a.due||'~').localeCompare(b.due||'~')));
+    ts.forEach(t=>{ const r=el('div','row'); r.innerHTML=`<span class="chk ${t.done?'done':''}">${t.done?'✓':''}</span><div><div>${esc(t.text)}</div><div style="color:var(--mut2);font-size:11.5px;margin-top:2px">${esc(t.note_title)}${t.due?' · due '+t.due:''}</div></div>`; r.querySelector('div').style.cssText='display:flex;align-items:center;gap:12px'; r.onclick=()=>openNote(t.note_id); m.append(r); });
+  },
+  async review(m){
+    const due = await api('GET','/api/review/due?limit=20'); counts.review=due.length;
+    m.innerHTML=''; m.append(headEl('Review','Spaced repetition — resurface what matters'));
+    if(!due.length) return m.append(emptyEl('↺','Nothing due','You’re all caught up.'));
+    due.forEach(d=>{ const r=el('div','row'); r.innerHTML=`<div style="cursor:pointer"><b>${esc(d.title)}</b><div style="color:var(--mut2);font-size:11.5px">reps ${d.reps||0}</div></div>`;
+      const gr=el('div','gr'); [['Again',1],['Hard',3],['Good',4],['Easy',5]].forEach(([lbl,grade])=>{ const b=el('button','btn ghost sm',lbl); b.onclick=async()=>{ await api('POST','/api/review',{noteId:d.id,grade}); toast('Scheduled · '+lbl); go('review'); }; gr.append(b); });
+      r.append(gr); r.querySelector('div').onclick=()=>openNote(d.id); m.append(r); });
+  },
+  async suggest(m){
+    const sg = await api('GET','/api/suggestions?status=pending'); counts.suggest=sg.length;
+    m.innerHTML=''; m.append(headEl('Suggestions','The Gardener proposes — you decide. Nothing is applied automatically.'));
+    if(!sg.length) return m.append(emptyEl('✦','Inbox zero','Run the Gardener to surface connections.'));
+    for(const s of sg){
+      const r=el('div','row');
+      let label = s.kind==='link' ? 'Link two related notes' : s.kind==='stale' ? 'Resurface a resting note' : s.kind==='duplicate' ? 'Possible duplicate' : s.kind;
+      let detail = s.label || [s.source,s.target].filter(Boolean).join('  ⇄  ');
+      r.innerHTML=`<span class="pill">${esc(s.kind)}</span><div><div>${label}${s.score?' · '+s.score:''}</div><div style="color:var(--mut2);font-size:11.5px;margin-top:2px;font-family:var(--mono)">${esc(detail)}</div></div>`;
+      const gr=el('div','gr');
+      const acc=el('button','btn sm','Accept'); acc.onclick=async()=>{ await api('POST','/api/suggestions/'+s.id+'/accept'); toast('Applied'); go('suggest'); };
+      const rej=el('button','btn ghost sm','Dismiss'); rej.onclick=async()=>{ await api('POST','/api/suggestions/'+s.id+'/reject'); go('suggest'); };
+      gr.append(acc,rej); r.append(gr); m.append(r);
+    }
+  },
+  async insights(m){
+    const s = await api('GET','/api/insights'); const gm = await api('GET','/api/graph/metrics').catch(()=>({}));
+    m.innerHTML=''; m.append(headEl('Insights','The shape of your second brain'));
+    const tiles=[['notes',s.totalNotes,'lime'],['links',s.totalLinks],['words',s.totalWords],['streak (days)',s.currentStreakDays,'lime'],['orphans',s.orphanCount],['hubs',(gm.hubs||[]).length]];
+    const st=el('div','stats'); tiles.forEach(([l,n,c])=>{ const t=el('div','stat'); t.innerHTML=`<div class="n ${c||''}">${n??0}</div><div class="l">${l}</div>`; st.append(t); }); m.append(st);
+    if((s.topProjects||[]).length){ m.append(el('div','section-t','Top projects')); const g=el('div','grid'); s.topProjects.slice(0,8).forEach(p=>{ const c=el('div','card'); c.innerHTML=`<h3>◆ ${esc(p.project)}</h3><div class="ex">${p.count} notes</div>`; c.onclick=()=>go('projects'); g.append(c); }); m.append(g); }
+    if((gm.hubs||[]).length){ m.append(el('div','section-t','Most-connected notes')); gm.hubs.slice(0,6).forEach(h=>{ const r=el('div','row'); r.innerHTML=`<b>${esc(h.title||h.id)}</b><span style="margin-left:auto;font-family:var(--mono);color:var(--lime-dim)">${h.degree} links</span>`; r.onclick=()=>openNote(h.id); m.append(r); }); }
+  },
+};
+VIEWS.settings = async function(m){
+  m.innerHTML=''; m.append(headEl('Settings','Manage your CORTEX'));
+  let health={}, ins={}; try{ health=await api('GET','/api/health'); }catch{} try{ ins=await api('GET','/api/insights'); }catch{}
+  const st=el('div','stats'); [['version',health.version||'?'],['notes',ins.totalNotes??'?'],['links',ins.totalLinks??'?'],['words',ins.totalWords??'?']].forEach(([l,n])=>{ const t=el('div','stat'); t.innerHTML=`<div class="n">${n}</div><div class="l">${l}</div>`; st.append(t); }); m.append(st);
+  m.append(el('div','section-t','Sample data'));
+  const row=el('div','row'); row.style.cursor='default';
+  const load=el('button','btn sm','Load sample notes'); load.onclick=loadSample;
+  const clear=el('button','btn ghost sm','Clear sample/demo data'); clear.style.cssText='color:var(--red);border-color:#3a2326'; clear.onclick=clearDemo;
+  row.append(load, clear); m.append(row);
+  m.append(el('div','section-t','Keyboard'));
+  const k=el('div','card'); k.style.cursor='default';
+  k.innerHTML='<div class="ex" style="-webkit-line-clamp:initial;min-height:0"><b>Ctrl/Cmd + K</b> &nbsp;command palette<br><b>Ctrl/Cmd + Enter</b> &nbsp;save note<br><b>Esc</b> &nbsp;close</div>';
+  m.append(k);
+  m.append(el('div','section-t','About'));
+  const a=el('div','card'); a.style.cursor='default'; a.innerHTML='<div class="ex" style="-webkit-line-clamp:initial;min-height:0">CORTEX - a local-first, AI-native second brain. 100% on your machine, no API keys. API at <a class="x" href="/api/spec" target="_blank">/api/spec</a>.</div>'; m.append(a);
+};
+async function loadSample(){ toast('Loading sample…'); const S=[
+  ['sample-welcome','Welcome to CORTEX','CORTEX is your local-first second brain. Capture a thought and the Gardener links and organizes it for you. Try semantic search - ask by meaning, not keywords.',['cortex','welcome']],
+  ['sample-linking','How linking works','Link any note with [[note-id]]; backlinks appear automatically. The Library graph shows the whole web of your notes.',['cortex','guide']],
+  ['sample-idea','Idea: weekend project','Build a tiny weather dashboard with a clean dark UI and a seven day forecast.',['ideas']],
+  ['sample-book','Book: Atomic Habits','James Clear - tiny one percent improvements compound. Make habits obvious, attractive, easy, and satisfying.',['reading']],
+  ['sample-week','This week','- [ ] review CORTEX @due(2026-06-12)\n- [ ] sketch the weekend project',['todo']],
+  ['sample-recipe','Quick dinner','Garlic butter pasta: boil pasta, melt butter with garlic, toss with parmesan and parsley.',['cooking','recipe']],
+];
+  try{ for(const [id,title,content,tags] of S) await api('POST','/api/notes',{id,title,content,tags}); await api('POST','/api/gardener/run'); await refreshCounts(); toast('Sample loaded'); go('settings'); }catch{ toast('Load failed'); } }
+async function clearDemo(){ if(!confirm('Delete all sample/demo notes?')) return; try{ const all=await api('GET','/api/notes?limit=300'); let n=0; for(const note of all){ if(note.id.startsWith('demo-')||note.id.startsWith('sample-')){ await api('DELETE','/api/notes/'+note.id); n++; } } await refreshCounts(); toast('Cleared '+n+' notes'); go('settings'); }catch{ toast('Clear failed'); } }
+function headEl(t,p){ const h=el('div','head'); h.innerHTML=`<h1>${esc(t)}</h1><p>${esc(p)}</p>`; return h; }
+function emptyEl(big,t,p){ return el('div','empty',`<div class="big">${big}</div><div>${esc(t)}</div><div style="color:var(--mut2);font-size:12.5px;margin-top:6px">${esc(p)}</div>`); }
+
+/* ---------- search ---------- */
+let mode='meaning', qT;
+$('#mSem').onclick=()=>{mode='meaning';$('#mSem').classList.add('on');$('#mKey').classList.remove('on');runSearch();};
+$('#mKey').onclick=()=>{mode='keyword';$('#mKey').classList.add('on');$('#mSem').classList.remove('on');runSearch();};
+$('#q').addEventListener('input',()=>{clearTimeout(qT);qT=setTimeout(runSearch,260);});
+async function runSearch(){ const q=$('#q').value.trim(); if(!q){ go(view); return; }
+  const m=$('#main'); const path = mode==='meaning' ? '/api/notes/semantic?q=' : '/api/notes/search?q=';
+  const res = await api('GET', path+encodeURIComponent(q));
+  m.innerHTML=''; m.append(headEl('Search', (mode==='meaning'?'By meaning':'Keyword')+' · “'+q+'” · '+res.length+' result'+(res.length===1?'':'s')));
+  if(!res.length) return m.append(emptyEl('⌕','No matches','Try the other mode, or rephrase.'));
+  const g=el('div','grid'); res.forEach(n=>g.append(noteCard(n))); m.append(g);
+}
+function searchTag(t){ $('#q').value=t; mode='keyword'; $('#mKey').classList.add('on'); $('#mSem').classList.remove('on'); runSearch(); }
+
+/* ---------- editor ---------- */
+let cur=null;
+function openDrawer(){ $('#scrim').classList.add('on'); $('#drawer').classList.add('on'); }
+function closeDrawer(){ $('#scrim').classList.remove('on'); $('#drawer').classList.remove('on'); cur=null; }
+$('#scrim').onclick=closeDrawer; $('#eClose').onclick=closeDrawer;
+document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeDrawer(); if((e.ctrlKey||e.metaKey)&&e.key==='Enter'&&cur!==null)saveNote(); });
+$('#newBtn').onclick=()=>{ cur={id:'note-'+Date.now(),title:'',content:'',tags:[],_new:true}; fillEditor(cur); $('#eMeta').textContent='new'; $('#eRel').innerHTML=''; $('#askA').textContent=''; openDrawer(); $('#eTitle').focus(); };
+function fillEditor(n){ $('#eTitle').value=n.title||''; $('#eTags').value=(n.tags||[]).join(', '); $('#eBody').value=n.content||''; }
+async function openNote(id){ try{ const n=await api('GET','/api/notes/'+id); cur=n; fillEditor(n); $('#eMeta').textContent=ago(n.updated_at); openDrawer(); $('#askA').textContent=''; loadRelated(id); renderBacklinks(n.backlinks||[]); }catch(e){ toast('Could not open'); } }
+async function renderBacklinks(ids){ const r=$('#eBack'); if(!ids||!ids.length){ r.innerHTML=''; return; } r.innerHTML='<div class="section-t">Backlinks · '+ids.length+'</div>';
+  for(const id of ids.slice(0,12)){ let title=id; try{ const bn=await api('GET','/api/notes/'+id); title=bn.title||id; }catch{} const ri=el('div','ri',`<span>↩ ${esc(title)}</span>`); ri.onclick=()=>openNote(id); r.append(ri); } }
+async function loadRelated(id){ const r=$('#eRel'); r.innerHTML='<div class="section-t">Related by meaning</div>'; try{ const rel=await api('GET','/api/notes/'+id+'/related?limit=6'); if(!rel.length){ r.append(el('div',null,'<span style="color:var(--mut2);font-size:12.5px">No strong connections yet.</span>')); return;} rel.forEach(x=>{ const ri=el('div','ri',`<span>${esc(x.title)}</span><span class="sc">${x.score}</span>`); ri.onclick=()=>openNote(x.id); r.append(ri); }); }catch{} }
+async function saveNote(){ if(!cur)return; const title=$('#eTitle').value.trim()||'Untitled'; const content=$('#eBody').value; const tags=$('#eTags').value.split(',').map(s=>s.trim()).filter(Boolean);
+  try{ if(cur._new){ await api('POST','/api/notes',{id:cur.id,title,content,tags}); cur._new=false; } else { await api('PUT','/api/notes/'+cur.id,{title,content,tags}); }
+    toast('Saved'); $('#eMeta').textContent='just now'; loadRelated(cur.id); go(view); }catch(e){ toast('Save failed'); } }
+$('#eSave').onclick=saveNote;
+$('#eDel').onclick=async()=>{ if(!cur||cur._new){closeDrawer();return;} if(!confirm('Delete this note?'))return; await api('DELETE','/api/notes/'+cur.id); toast('Deleted'); closeDrawer(); go(view); };
+$('#askBtn').onclick=async()=>{ const q=$('#askQ').value.trim(); if(!q||!cur)return; const a=$('#askA'); a.innerHTML='<span class="spin"></span>';
+  try{ const r=await api('POST','/api/ai/ask',{query:q,noteId:cur.id,scope:'related'}); a.textContent=(r.sources&&r.sources.length?('Sources: '+r.sources.length+' notes\n\n'):'')+ (r.context? r.context.slice(0,600)+'…' : 'No context.'); }catch{ a.textContent='Ask failed.'; } };
+async function openToday(){ const d=await api('GET','/api/daily'); openNote(d.id); }
+
+/* ---------- garden ---------- */
+$('#gardenBtn').onclick=async()=>{ const b=$('#gardenBtn'); b.innerHTML='<span class="spin"></span>'; try{ const r=await api('POST','/api/gardener/run'); toast('Gardener: '+(r.classify?.projects||0)+' projects · '+(r.links_created||0)+' auto-links'); await refreshCounts(); go(view);}catch{ toast('Garden failed'); } b.innerHTML='↻ Garden'; };
+
+/* ---------- markdown preview ---------- */
+function md(t){ if(!t||!t.trim()) return '<span style="color:var(--mut2)">Nothing to preview.</span>'; let h=esc(t);
+  h=h.replace(/```([\s\S]*?)```/g,(m,c)=>'<pre class="cb">'+c.replace(/^\n+|\n+$/g,'')+'</pre>');
+  h=h.replace(/^###\s?(.*)$/gm,'<h3>$1</h3>').replace(/^##\s?(.*)$/gm,'<h2>$1</h2>').replace(/^#\s?(.*)$/gm,'<h1 class="mdh1">$1</h1>');
+  h=h.replace(/^\s*[-*]\s\[ \]\s?(.*)$/gm,'<div class="mdtask">▢ $1</div>').replace(/^\s*[-*]\s\[[xX]\]\s?(.*)$/gm,'<div class="mdtask done">▣ $1</div>');
+  h=h.replace(/^\s*[-*]\s+(?!\[)(.*)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)(?!\s*<li>)/g,'<ul>$1</ul>');
+  h=h.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/`([^`]+)`/g,'<code>$1</code>');
+  h=h.replace(/\[\[([^\]]+)\]\]/g,(m,id)=>'<a class="wl" data-id="'+esc(id)+'">[['+esc(id)+']]</a>');
+  return h.split(/\n{2,}/).map(b=>/^\s*<(h\d|ul|pre|div)/.test(b)?b:'<p>'+b.replace(/\n/g,'<br>')+'</p>').join('');
+}
+let prev=false;
+function setPrev(on){ prev=on; $('#tabWrite').classList.toggle('on',!on); $('#tabPrev').classList.toggle('on',on); $('#eBody').style.display=on?'none':''; const m=$('#eMd'); m.classList.toggle('on',on); if(on){ m.innerHTML=md($('#eBody').value); m.querySelectorAll('a.wl').forEach(a=>a.onclick=()=>openNote(a.dataset.id)); } }
+$('#tabWrite').onclick=()=>setPrev(false); $('#tabPrev').onclick=()=>setPrev(true);
+const _fillEditor=fillEditor; fillEditor=function(n){ _fillEditor(n); setPrev(false); };
+
+/* ---------- command palette (Cmd/Ctrl+K) ---------- */
+const PAL_ACTIONS=[...LAYERS.map(L=>({t:L.label,ic:L.ic,k:'layer '+L.n,run:()=>go(L.k)})),...TOOLS.map(L=>({t:L.label,ic:L.ic,k:'view',run:()=>go(L.k)})),{t:'New note',ic:'＋',k:'',run:()=>$('#newBtn').click()},{t:'Today (daily note)',ic:'◷',k:'',run:openToday},{t:'Run the Gardener',ic:'↻',k:'',run:()=>$('#gardenBtn').click()}];
+let palSel=0, palItems=[], palT;
+function openPal(){ $('#pal').classList.add('on'); $('#palQ').value=''; renderPal(''); setTimeout(()=>$('#palQ').focus(),0); }
+function closePal(){ $('#pal').classList.remove('on'); }
+async function renderPal(q){ const res=$('#palRes'); palSel=0;
+  const acts=PAL_ACTIONS.filter(a=>a.t.toLowerCase().includes(q.toLowerCase())).map(a=>({...a,kind:'action'}));
+  let notes=[]; if(q.trim().length>=2){ try{ notes=(await api('GET','/api/notes/semantic?q='+encodeURIComponent(q))).slice(0,6).map(n=>({t:n.title,ic:'◷',k:n.project||'note',run:()=>openNote(n.id)})); }catch{} }
+  palItems=[...acts,...notes];
+  if(q.trim()) palItems.push({ ic:'＋', t:'Capture "'+q.trim()+'"', k:'new note', run:async()=>{ try{ const n=await api('POST','/api/capture',{text:q.trim()}); toast('Captured'); refreshCounts(); if(n&&n.id) openNote(n.id); }catch{ toast('Capture failed'); } } });
+  res.innerHTML='';
+  if(!palItems.length){ res.append(el('div','it','<span style="color:var(--mut2)">No matches</span>')); return; }
+  palItems.forEach((it,i)=>{ const d=el('div','it'+(i===0?' sel':'')); d.innerHTML=`<span class="ic">${it.ic||'•'}</span>${esc(it.t)}<span class="k">${esc(it.k||'')}</span>`; d.onclick=()=>{ closePal(); it.run(); }; res.append(d); });
+}
+function paintSel(){ const items=$('#palRes').children; for(let i=0;i<items.length;i++) items[i].classList.toggle('sel',i===palSel); }
+$('#palQ').addEventListener('input',e=>{ clearTimeout(palT); palT=setTimeout(()=>renderPal(e.target.value),150); });
+$('#pal').addEventListener('click',e=>{ if(e.target.id==='pal')closePal(); });
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){ e.preventDefault(); $('#pal').classList.contains('on')?closePal():openPal(); return; }
+  if(!$('#pal').classList.contains('on')) return;
+  if(e.key==='Escape') closePal();
+  else if(e.key==='ArrowDown'){ e.preventDefault(); palSel=Math.min(palSel+1,palItems.length-1); paintSel(); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); palSel=Math.max(palSel-1,0); paintSel(); }
+  else if(e.key==='Enter'){ const it=palItems[palSel]; if(it){ closePal(); it.run(); } }
+});
+
+/* ---------- boot ---------- */
+async function refreshCounts(){ try{ const L=await api('GET','/api/layers'); L.layers.forEach(x=>counts[x.key]=x.count); const sg=await api('GET','/api/suggestions?status=pending'); counts.suggest=sg.length; const ts=await api('GET','/api/tasks'); counts.tasks=ts.filter(t=>!t.done).length; renderSide(); }catch{} }
+function toggleSide(open){ const s=$('#side'); if(open==null) open=!s.classList.contains('open'); s.classList.toggle('open',open); $('#scrim2').classList.toggle('on',open); }
+$('#hamb').onclick=()=>toggleSide();
+$('#scrim2').onclick=()=>toggleSide(false);
+(async function(){ renderSide(); await refreshCounts(); go('stream'); })();
+</script>
+</body>
+</html>
