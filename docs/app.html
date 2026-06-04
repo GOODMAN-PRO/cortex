@@ -72,6 +72,21 @@
   .empty{color:var(--mut2);text-align:center;padding:70px 20px;font-size:14px}
   .empty .big{font-size:40px;margin-bottom:10px;opacity:.5}
 
+  /* drag-and-drop */
+  .card.dragging{opacity:.5;cursor:grabbing;z-index:10}
+  .card.drag-over{border:2px dashed var(--lime);background:rgba(198,255,58,.05)}
+  .card[draggable="true"]{cursor:grab}
+  .drag-handle{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;cursor:grab;color:var(--mut2);transition:color .15s;margin-right:4px;flex-shrink:0}
+  .card:hover .drag-handle{color:var(--lime-dim)}
+  .card.dragging .drag-handle{cursor:grabbing;color:var(--lime)}
+  .drop-placeholder{height:90px;border:2px dashed var(--lime);border-radius:var(--r);background:rgba(198,255,58,.08);margin:13px 0;transition:all .15s;pointer-events:none}
+  .drop-zone{min-height:60px;transition:background .15s}
+  .drop-zone.active{background:rgba(198,255,58,.04)}
+  @keyframes snap-back{0%{transform:scale(.95);opacity:.5} 100%{transform:scale(1);opacity:1}}
+  @keyframes shake{0%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} 100%{transform:translateX(0)}}
+  .card.snap-back{animation:snap-back .3s ease-out}
+  .card.invalid-drop{animation:shake .4s ease-out}
+
   /* stat tiles */
   .stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:22px}
   .stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px}
@@ -245,6 +260,161 @@ const TOOLS = [
 ];
 let view = 'stream', counts = {}, graph = null;
 
+/* ---------- drag-and-drop state ---------- */
+let dragState = {
+  draggingNote: null,
+  sourceLayer: null,
+  dropTarget: null,
+  originalIndex: null,
+  placeholder: null,
+  keyboardDragMode: false,
+  keyboardFocusedCard: null,
+};
+
+function dragStart(e, note) {
+  dragState.draggingNote = note;
+  dragState.sourceLayer = view;
+  dragState.originalIndex = Array.from(e.currentTarget.parentElement.children).indexOf(e.currentTarget);
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('application/json', JSON.stringify({id:note.id,layer:view}));
+  e.currentTarget.classList.add('dragging');
+  const dragImg = new Image(); dragImg.src = 'data:image/svg+xml,<svg></svg>'; e.dataTransfer.setDragImage(dragImg, 0, 0);
+}
+
+function dragEnd(e, note) {
+  e.currentTarget.classList.remove('dragging');
+  if(dragState.placeholder) dragState.placeholder.remove();
+  dragState = {draggingNote: null, sourceLayer: null, dropTarget: null, originalIndex: null, placeholder: null, keyboardDragMode: false};
+  document.querySelectorAll('.drag-over').forEach(c => c.classList.remove('drag-over'));
+}
+
+function dragOver(e, targetNote) {
+  if(!dragState.draggingNote || dragState.keyboardDragMode) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const card = e.currentTarget;
+  card.classList.add('drag-over');
+  dragState.dropTarget = targetNote.id;
+}
+
+function dragLeave(e, note) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+async function drop(e, targetNote) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+
+  if(!dragState.draggingNote) return;
+  const draggedNote = dragState.draggingNote;
+  if(draggedNote.id === targetNote.id) { return; }
+
+  try {
+    const sourceCard = document.querySelector(`[data-note-id="${draggedNote.id}"]`);
+    const targetCard = e.currentTarget;
+
+    // Swap within same layer
+    if(dragState.sourceLayer === view) {
+      const parent = targetCard.parentElement;
+      const sourceIndex = Array.from(parent.children).indexOf(sourceCard);
+      const targetIndex = Array.from(parent.children).indexOf(targetCard);
+
+      if(sourceIndex < targetIndex) {
+        targetCard.parentElement.insertBefore(sourceCard, targetCard.nextSibling);
+      } else {
+        targetCard.parentElement.insertBefore(sourceCard, targetCard);
+      }
+      sourceCard.classList.add('snap-back');
+      setTimeout(() => sourceCard.classList.remove('snap-back'), 300);
+      return;
+    }
+
+    // Move to different layer
+    const layerKey = view;
+    const updatedNote = {...draggedNote};
+    updatedNote.project = layerKey;
+
+    sourceCard.classList.add('snap-back');
+    await api('PUT', '/api/notes/'+draggedNote.id, updatedNote);
+    toast('Moved to '+view);
+    await go(view);
+  } catch(err) {
+    toast('Move failed: '+(err.message||'unknown error'));
+    const sourceCard = document.querySelector(`[data-note-id="${dragState.draggingNote.id}"]`);
+    if(sourceCard) {
+      sourceCard.classList.add('invalid-drop');
+      setTimeout(() => sourceCard.classList.remove('invalid-drop'), 400);
+    }
+  }
+}
+
+function dragStartKeyboard(e, note, cardEl) {
+  dragState.keyboardDragMode = true;
+  dragState.draggingNote = note;
+  dragState.sourceLayer = view;
+  dragState.keyboardFocusedCard = cardEl;
+  cardEl.classList.add('dragging');
+  const msg = document.createElement('div');
+  msg.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--panel2);color:var(--txt);padding:12px 18px;border:1px solid var(--lime);border-radius:10px;font-size:13px;z-index:100;font-weight:600';
+  msg.textContent = '🎯 Drag mode: Use ↑↓ arrows to move, Enter to drop, Esc to cancel';
+  msg.id = 'drag-mode-hint';
+  document.body.appendChild(msg);
+  toast('Drag mode active (arrows to move, Enter to drop)');
+}
+
+document.addEventListener('keydown', e => {
+  if(!dragState.keyboardDragMode || !dragState.draggingNote) return;
+
+  if(e.key === 'Escape') {
+    e.preventDefault();
+    dragState.keyboardDragMode = false;
+    dragState.draggingNote = null;
+    if(dragState.keyboardFocusedCard) dragState.keyboardFocusedCard.classList.remove('dragging');
+    const hint = document.getElementById('drag-mode-hint');
+    if(hint) hint.remove();
+    toast('Drag cancelled');
+    dragState = {draggingNote: null, sourceLayer: null, dropTarget: null, originalIndex: null, placeholder: null, keyboardDragMode: false};
+    return;
+  }
+
+  if(e.key === 'Enter') {
+    e.preventDefault();
+    if(dragState.dropTarget) {
+      const sourceCard = document.querySelector(`[data-note-id="${dragState.draggingNote.id}"]`);
+      const targetCard = document.querySelector(`[data-note-id="${dragState.dropTarget}"]`);
+      if(sourceCard && targetCard) {
+        const event = new DragEvent('drop', {
+          bubbles: true,
+          cancelable: true,
+          dataTransfer: new DataTransfer()
+        });
+        targetCard.dispatchEvent(event);
+      }
+    }
+    dragState.keyboardDragMode = false;
+    if(dragState.keyboardFocusedCard) dragState.keyboardFocusedCard.classList.remove('dragging');
+    const hint = document.getElementById('drag-mode-hint');
+    if(hint) hint.remove();
+    dragState = {draggingNote: null, sourceLayer: null, dropTarget: null, originalIndex: null, placeholder: null, keyboardDragMode: false};
+    return;
+  }
+
+  if(e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    const allCards = Array.from(document.querySelectorAll('.card'));
+    const currentIndex = allCards.indexOf(dragState.keyboardFocusedCard);
+    let targetIndex = e.key === 'ArrowDown' ? currentIndex + 1 : currentIndex - 1;
+    targetIndex = Math.max(0, Math.min(targetIndex, allCards.length - 1));
+    const targetCard = allCards[targetIndex];
+    if(targetCard) {
+      dragState.dropTarget = targetCard.dataset.noteId;
+      document.querySelectorAll('.drag-over').forEach(c => c.classList.remove('drag-over'));
+      targetCard.classList.add('drag-over');
+      targetCard.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }
+  }
+});
+
 function renderSide(){
   const s = $('#side'); s.innerHTML='';
   s.append(el('div','grp','The 5 layers'));
@@ -266,13 +436,41 @@ function renderSide(){
 
 function noteCard(n){
   const c = el('div','card');
-  c.innerHTML = `<h3>${esc(n.title||'Untitled')}</h3><div class="ex">${esc((n.content||'').replace(/[#*>`\[\]]/g,'').slice(0,160))}</div>`;
+  c.draggable = true;
+  c.dataset.noteId = n.id;
+  const h = el('h3');
+  const handle = el('span', 'drag-handle', '✋');
+  handle.setAttribute('aria-label', 'Drag handle for '+esc(n.title||'Untitled'));
+  handle.setAttribute('role', 'button');
+  handle.setAttribute('tabindex', '0');
+  h.appendChild(handle);
+  h.appendChild(document.createTextNode(esc(n.title||'Untitled')));
+  c.appendChild(h);
+  const ex = el('div','ex');
+  ex.textContent = (n.content||'').replace(/[#*>`\[\]]/g,'').slice(0,160);
+  c.appendChild(ex);
+
   const meta = el('div','meta');
   if(n.project) meta.append(el('span','tag proj','◆ '+esc(n.project)));
   (n.tags||[]).slice(0,3).forEach(t=>meta.append(el('span','tag','#'+esc(t))));
   if(n.score!=null) meta.append(el('span','tag','◑ '+n.score));
   meta.append(el('span','tag time',ago(n.updated_at||n.created_at)));
-  c.append(meta); c.onclick=()=>openNote(n.id); return c;
+  c.append(meta);
+
+  // Drag events
+  c.addEventListener('dragstart', e => dragStart(e, n));
+  c.addEventListener('dragend', e => dragEnd(e, n));
+  c.addEventListener('dragover', e => dragOver(e, n));
+  c.addEventListener('dragleave', e => dragLeave(e, n));
+  c.addEventListener('drop', e => drop(e, n));
+
+  // Keyboard support for drag
+  handle.addEventListener('keydown', e => {
+    if(e.key === ' ') { e.preventDefault(); dragStartKeyboard(e, n, c); }
+  });
+
+  c.onclick=()=>openNote(n.id);
+  return c;
 }
 
 async function go(v){ view=v; if(window.innerWidth<=780){$('#side').classList.remove('open');$('#scrim2').classList.remove('on');} renderSide(); const m=$('#main'); m.innerHTML='<div class="empty"><span class="spin"></span></div>';
@@ -286,7 +484,29 @@ const VIEWS = {
     counts.stream = notes.length;
     m.innerHTML=''; m.append(headEl('Stream','Your latest captures — newest first'));
     if(!notes.length) return m.append(emptyEl('≡','Nothing captured yet','Hit “New note” or capture a thought.'));
-    const g=el('div','grid'); notes.forEach(n=>g.append(noteCard(n))); m.append(g);
+    const g=el('div','grid');
+    g.setAttribute('data-layer', 'stream');
+    g.addEventListener('dragover', e => {
+      if(dragState.draggingNote && dragState.sourceLayer !== 'stream') {
+        e.preventDefault();
+        g.classList.add('drop-zone', 'active');
+      }
+    });
+    g.addEventListener('dragleave', () => g.classList.remove('drop-zone', 'active'));
+    g.addEventListener('drop', async e => {
+      e.preventDefault();
+      g.classList.remove('drop-zone', 'active');
+      if(!dragState.draggingNote) return;
+      try {
+        const updated = {...dragState.draggingNote, project: 'stream'};
+        await api('PUT', '/api/notes/'+dragState.draggingNote.id, updated);
+        toast('Moved to Stream');
+        await go('stream');
+      } catch(err) {
+        toast('Move failed');
+      }
+    });
+    notes.forEach(n=>g.append(noteCard(n))); m.append(g);
   },
   async projects(m){
     const ps = await api('GET','/api/projects'); counts.projects=ps.length;
@@ -295,7 +515,30 @@ const VIEWS = {
     for(const p of ps){
       m.append(el('div','section-t','◆ '+esc(p.project)+' · '+p.count));
       const notes = await api('GET','/api/projects/'+encodeURIComponent(p.project)+'?limit=8');
-      const g=el('div','grid'); notes.forEach(n=>g.append(noteCard(n))); m.append(g);
+      const g=el('div','grid');
+      g.setAttribute('data-layer', 'project');
+      g.setAttribute('data-project', p.project);
+      g.addEventListener('dragover', e => {
+        if(dragState.draggingNote) {
+          e.preventDefault();
+          g.classList.add('drop-zone', 'active');
+        }
+      });
+      g.addEventListener('dragleave', () => g.classList.remove('drop-zone', 'active'));
+      g.addEventListener('drop', async e => {
+        e.preventDefault();
+        g.classList.remove('drop-zone', 'active');
+        if(!dragState.draggingNote) return;
+        try {
+          const updated = {...dragState.draggingNote, project: p.project};
+          await api('PUT', '/api/notes/'+dragState.draggingNote.id, updated);
+          toast('Moved to project '+p.project);
+          await go('projects');
+        } catch(err) {
+          toast('Move failed');
+        }
+      });
+      notes.forEach(n=>g.append(noteCard(n))); m.append(g);
     }
   },
   async areas(m){
@@ -303,6 +546,7 @@ const VIEWS = {
     counts.areas=areas.length; m.innerHTML=''; m.append(headEl('Areas','Themes across your vault, by tag'));
     if(!areas.length) return m.append(emptyEl('#','No tags yet','Tag your notes to grow areas.'));
     const g=el('div','grid');
+    g.setAttribute('data-layer', 'areas');
     areas.forEach(a=>{ const c=el('div','card'); c.innerHTML=`<h3>#${esc(a.tag)}</h3><div class="ex">${a.count} note${a.count===1?'':'s'}</div>`; c.onclick=()=>searchTag(a.tag); g.append(c); });
     m.append(g);
   },
@@ -319,7 +563,29 @@ const VIEWS = {
     const L = await api('GET','/api/layers'); const ar=(L.layers.find(x=>x.key==='archive')||{});
     counts.archive=ar.count||0; m.innerHTML=''; m.append(headEl('Archive','Resting — untouched for 30+ days'));
     const items=ar.items||[]; if(!items.length) return m.append(emptyEl('⏾','Nothing resting','Everything is fresh.'));
-    const g=el('div','grid'); items.forEach(n=>g.append(noteCard(n))); m.append(g);
+    const g=el('div','grid');
+    g.setAttribute('data-layer', 'archive');
+    g.addEventListener('dragover', e => {
+      if(dragState.draggingNote && dragState.sourceLayer !== 'archive') {
+        e.preventDefault();
+        g.classList.add('drop-zone', 'active');
+      }
+    });
+    g.addEventListener('dragleave', () => g.classList.remove('drop-zone', 'active'));
+    g.addEventListener('drop', async e => {
+      e.preventDefault();
+      g.classList.remove('drop-zone', 'active');
+      if(!dragState.draggingNote) return;
+      try {
+        const updated = {...dragState.draggingNote, project: 'archive'};
+        await api('PUT', '/api/notes/'+dragState.draggingNote.id, updated);
+        toast('Moved to Archive');
+        await go('archive');
+      } catch(err) {
+        toast('Move failed');
+      }
+    });
+    items.forEach(n=>g.append(noteCard(n))); m.append(g);
   },
   async tasks(m){
     const ts = await api('GET','/api/tasks'); const open=ts.filter(t=>!t.done); counts.tasks=open.length;
@@ -399,7 +665,16 @@ async function runSearch(){ const q=$('#q').value.trim(); if(!q){ go(view); retu
   const res = await api('GET', path+encodeURIComponent(q));
   m.innerHTML=''; m.append(headEl('Search', (mode==='meaning'?'By meaning':'Keyword')+' · “'+q+'” · '+res.length+' result'+(res.length===1?'':'s')));
   if(!res.length) return m.append(emptyEl('⌕','No matches','Try the other mode, or rephrase.'));
-  const g=el('div','grid'); res.forEach(n=>g.append(noteCard(n))); m.append(g);
+  const g=el('div','grid');
+  g.setAttribute('data-layer', 'search');
+  g.addEventListener('dragover', e => {
+    if(dragState.draggingNote) {
+      e.preventDefault();
+      g.classList.add('drop-zone', 'active');
+    }
+  });
+  g.addEventListener('dragleave', () => g.classList.remove('drop-zone', 'active'));
+  res.forEach(n=>g.append(noteCard(n))); m.append(g);
 }
 function searchTag(t){ $('#q').value=t; mode='keyword'; $('#mKey').classList.add('on'); $('#mSem').classList.remove('on'); runSearch(); }
 
