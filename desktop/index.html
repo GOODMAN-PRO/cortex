@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CORTEX — Local AI second brain">
+  <!-- CSP: no 'unsafe-inline', no external scripts -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self';
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' data: https:;
+    font-src 'self' data:;
+    connect-src 'self' http://127.0.0.1:7002;
+    frame-src 'none';
+    object-src 'none';
+  ">
+  <title>CORTEX</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #0f0f0f;
+      color: #e0e0e0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    #app {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Loading state */
+    .cortex-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .cortex-loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-top-color: #00d4ff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .cortex-loading-text {
+      font-size: 14px;
+      color: #888;
+    }
+
+    /* Error boundary */
+    .cortex-error {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      flex-direction: column;
+      gap: 1.5rem;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .cortex-error-icon {
+      font-size: 48px;
+      color: #ff6b6b;
+    }
+
+    .cortex-error-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #e0e0e0;
+    }
+
+    .cortex-error-message {
+      font-size: 14px;
+      color: #888;
+      max-width: 400px;
+      line-height: 1.6;
+    }
+
+    .cortex-error-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .cortex-error-button {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .cortex-error-button-primary {
+      background: #00d4ff;
+      color: #0f0f0f;
+      font-weight: 600;
+    }
+
+    .cortex-error-button-primary:hover {
+      background: #00b8d4;
+    }
+
+    .cortex-error-button-secondary {
+      background: #2a2a2a;
+      color: #e0e0e0;
+    }
+
+    .cortex-error-button-secondary:hover {
+      background: #333;
+    }
+
+    /* Offline indicator */
+    .cortex-offline-banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #2d2d1f;
+      border-bottom: 1px solid #5a5a3a;
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 13px;
+      color: #daa520;
+      z-index: 9999;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .cortex-offline-banner.visible {
+      max-height: 60px;
+    }
+
+    .cortex-offline-banner::before {
+      content: "⚠";
+      flex-shrink: 0;
+    }
+
+    /* iframe container */
+    #cortex-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #0f0f0f;
+    }
+
+    .cortex-frame-container {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Offline indicator -->
+    <div id="cortex-offline-banner" class="cortex-offline-banner">
+      Connection to CORTEX server lost. Attempting to reconnect...
+    </div>
+
+    <!-- Main content container -->
+    <div class="cortex-frame-container">
+      <div id="cortex-loading" class="cortex-loading">
+        <div class="cortex-loading-spinner"></div>
+        <div class="cortex-loading-text">Loading CORTEX...</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    const CORTEX_URL = 'http://127.0.0.1:7002';
+    const FRAME_LOAD_TIMEOUT = 10000; // 10 seconds
+    const CONNECTION_CHECK_INTERVAL = 5000; // 5 seconds
+
+    let isOnline = true;
+    let offlineBanner = null;
+    let loadingContainer = null;
+    let frameContainer = null;
+
+    /**
+     * Initialize the app on load
+     */
+    async function init() {
+      offlineBanner = document.getElementById('cortex-offline-banner');
+      loadingContainer = document.getElementById('cortex-loading');
+      frameContainer = document.querySelector('.cortex-frame-container');
+
+      // Check connection immediately
+      await checkConnection();
+
+      // Poll connection status
+      setInterval(checkConnection, CONNECTION_CHECK_INTERVAL);
+
+      // Load the app iframe
+      setTimeout(loadAppFrame, 100);
+    }
+
+    /**
+     * Check if CORTEX server is reachable
+     */
+    async function checkConnection() {
+      try {
+        const response = await fetch(`${CORTEX_URL}/health`, {
+          method: 'GET',
+          mode: 'no-cors',
+        });
+        // Server responded (even with CORS error, it's online)
+        setOnlineStatus(true);
+      } catch (error) {
+        // No response = server is down
+        setOnlineStatus(false);
+      }
+    }
+
+    /**
+     * Update online/offline UI
+     */
+    function setOnlineStatus(online) {
+      isOnline = online;
+      if (offlineBanner) {
+        offlineBanner.classList.toggle('visible', !online);
+      }
+    }
+
+    /**
+     * Load the CORTEX app in an iframe
+     */
+    function loadAppFrame() {
+      // Create iframe
+      const iframe = document.createElement('iframe');
+      iframe.id = 'cortex-frame';
+      iframe.src = `${CORTEX_URL}/app`;
+      iframe.sandbox.add('allow-same-origin');
+      iframe.sandbox.add('allow-scripts');
+      iframe.sandbox.add('allow-forms');
+      iframe.sandbox.add('allow-pointer-lock');
+
+      // Replace loading spinner
+      if (loadingContainer && frameContainer) {
+        frameContainer.removeChild(loadingContainer);
+      }
+
+      // Add iframe to DOM
+      frameContainer.appendChild(iframe);
+
+      // Error handling
+      iframe.addEventListener('error', () => {
+        showError(
+          'Failed to load CORTEX',
+          'The application failed to load. Please check that the CORTEX server is running.'
+        );
+      });
+
+      // Timeout handling
+      setTimeout(() => {
+        if (!iframe.contentDocument || !iframe.contentDocument.body) {
+          showError(
+            'CORTEX load timeout',
+            'The application took too long to load. This may indicate a connection issue.'
+          );
+        }
+      }, FRAME_LOAD_TIMEOUT);
+    }
+
+    /**
+     * Show error UI
+     */
+    function showError(title, message) {
+      const errorHTML = `
+        <div class="cortex-error">
+          <div class="cortex-error-icon">✕</div>
+          <div class="cortex-error-title">${escapeHtml(title)}</div>
+          <div class="cortex-error-message">${escapeHtml(message)}</div>
+          <div class="cortex-error-actions">
+            <button class="cortex-error-button cortex-error-button-primary" onclick="window.location.reload()">
+              Reload
+            </button>
+            <button class="cortex-error-button cortex-error-button-secondary" onclick="window.cortex.log('info', 'User dismissed error')">
+              Dismiss
+            </button>
+          </div>
+        </div>
+      `;
+
+      if (frameContainer) {
+        frameContainer.innerHTML = errorHTML;
+      }
+    }
+
+    /**
+     * Escape HTML to prevent XSS
+     */
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Start the app
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>

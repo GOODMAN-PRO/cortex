@@ -1,0 +1,24 @@
+# Environment
+.env
+.env.local
+
+# Dependencies
+node_modules
+dist
+out
+
+# Build artifacts
+*.dmg
+*.exe
+*.AppImage
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Window state
+.window-state.json
+
+# Logs
+*.log
+npm-debug.log*

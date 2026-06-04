@@ -1,0 +1,77 @@
+{
+  "name": "cortex-desktop",
+  "version": "1.0.0",
+  "description": "CORTEX Desktop — Secure local AI second brain",
+  "type": "module",
+  "main": "main.js",
+  "author": "CORTEX",
+  "license": "MIT",
+  "scripts": {
+    "dev": "electron .",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac dmg",
+    "build:win": "electron-builder --win nsis",
+    "build:linux": "electron-builder --linux AppImage"
+  },
+  "dependencies": {
+    "electron": "^28.0.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {},
+  "build": {
+    "appId": "com.cortex.desktop",
+    "productName": "CORTEX",
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      ".env.example",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.productivity"
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 110,
+          "y": 150,
+          "type": "file"
+        },
+        {
+          "x": 240,
+          "y": 150,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "assets/icon.png"
+    }
+  }
+}
