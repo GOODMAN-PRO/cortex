@@ -31,7 +31,7 @@ const PORT = 7002;
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), { setHeaders: (res) => res.setHeader('Cache-Control', 'no-store') }));
 
 initDb();
 
@@ -339,8 +339,8 @@ app.post('/api/ai/ask', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.get('/app', (req, res) => res.sendFile(path.join(__dirname, 'public', 'app.html')));
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('/app', (req, res) => { res.set('Cache-Control', 'no-store'); res.sendFile(path.join(__dirname, 'public', 'app.html')); });
+app.get('/', (req, res) => { res.set('Cache-Control', 'no-store'); res.sendFile(path.join(__dirname, 'public', 'index.html')); });
 
 app.listen(PORT, '127.0.0.1', async () => {
   console.log(`CORTEX running at http://127.0.0.1:${PORT}  (spec at /api/spec)`);

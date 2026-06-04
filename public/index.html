@@ -7,14 +7,14 @@
 <meta name="description" content="CORTEX is a local-first, AI-native second brain. It captures, links, and resurfaces your notes automatically — by meaning, on your own machine. No cloud, no API keys." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#09090b; --ink2:#0e0f12; --surf:#121317; --surf2:#16181e;
     --line:rgba(255,255,255,.075); --line2:rgba(255,255,255,.13);
     --txt:#ECEBE6; --mut:#9a9ba3; --mut2:#62646c;
     --accent:#c8f24e; --accent-deep:#aada3c;
-    --serif:'Fraunces',Georgia,serif;
+    --serif:'Space Grotesk',system-ui,-apple-system,sans-serif;
     --sans:'Space Grotesk',system-ui,-apple-system,sans-serif;
     --mono:'JetBrains Mono',ui-monospace,monospace;
     --ease:cubic-bezier(.2,.7,0,1);
@@ -70,10 +70,10 @@
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
   h1,h2,h3{margin:0;font-weight:400}
-  .display{font-family:var(--serif);font-weight:500;line-height:1.02;letter-spacing:-.01em;font-optical-sizing:auto}
+  .display{font-family:var(--serif);font-weight:700;line-height:1.02;letter-spacing:-.03em}
   h1.display{font-size:clamp(44px,7vw,90px)}
   h2.display{font-size:clamp(32px,4.6vw,58px);line-height:1.05}
-  .display .it{font-style:italic;font-weight:400;color:var(--accent-deep)}
+  .display .it{font-style:normal;font-weight:700;color:var(--accent-deep)}
   .lead{color:var(--mut);font-size:clamp(16px,1.5vw,20px);max-width:54ch;line-height:1.65}
   .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--mut2)}
 
@@ -206,8 +206,8 @@
     </div>
     <div class="hero-visual reveal d3">
       <div class="bezel"><div class="core">
-        <div class="winbar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="u">cortex — the living graph (live)</span></div>
-        <div class="heroGraph" id="heroGraph"></div>
+        <div class="winbar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="u">cortex — the living graph</span></div>
+        <img class="shot" src="/shots/graph.png" alt="The CORTEX knowledge graph — notes connected automatically by meaning" loading="lazy" />
       </div></div>
     </div>
     <div class="stripstats reveal">
@@ -402,7 +402,6 @@
   </div>
 </footer>
 
-<script src="/graph-view.js"></script>
 <script>
   // nav firms up on scroll
   const pill = document.querySelector('.navpill');
@@ -426,14 +425,6 @@
     });
     btn.addEventListener('pointerleave', () => { btn.style.transform = ''; });
   });
-
-  // live hero graph (real /api/graph, animated, non-interactive backdrop)
-  try {
-    if (window.CortexGraph) {
-      const g = window.CortexGraph.init(document.getElementById('heroGraph'), {});
-      document.getElementById('heroGraph').style.pointerEvents = 'none';
-    }
-  } catch (_) {}
 
   // mobile menu
   const menu = document.getElementById('menu');
