@@ -116,6 +116,7 @@
   @media(max-width:900px){ .bento{grid-template-columns:1fr} .c4,.c2{grid-column:span 1} }
 
   .split{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+  .split>*{min-width:0}
   .split.rev .txt{order:2}
   @media(max-width:860px){ .split{grid-template-columns:1fr;gap:34px} .split.rev .txt{order:0} }
   .featline{display:flex;gap:13px;margin-top:18px;color:var(--mut);font-size:14.5px}
@@ -362,7 +363,7 @@
       <div class="kicker" style="margin-bottom:18px">Yours, only</div>
       <h2 class="display" style="max-width:18ch">Your second brain shouldn't <span class="it">phone home.</span></h2>
       <p class="lead" style="margin-top:24px">No accounts. No telemetry. No third party. Your notes live in a plain SQLite file you can hold, back up, and read — and the AI runs on a model that sits on your disk.</p>
-      <div class="bento" style="margin-top:40px;grid-template-columns:repeat(3,1fr)">
+      <div class="bento" style="margin-top:40px">
         <div class="cell c2"><h3 style="font-size:18px">On-device embeddings</h3><p>MiniLM runs locally. Semantic search with nothing sent anywhere.</p></div>
         <div class="cell c2"><h3 style="font-size:18px">Plain-text portable</h3><p>Export to Markdown any time. No lock-in, ever.</p></div>
         <div class="cell c2"><h3 style="font-size:18px">Open by design</h3><p>A documented local REST API at <span style="font-family:var(--mono);color:var(--accent-deep)">/api/spec</span>.</p></div>
