@@ -26,7 +26,7 @@ import { createBackup, listBackups, pruneBackups } from './backup.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-const PORT = 7002;
+const PORT = parseInt(process.env.CORTEX_PORT || '7002', 10);
 
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));

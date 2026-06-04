@@ -1,77 +1,70 @@
 {
   "name": "cortex-desktop",
   "version": "1.0.0",
-  "description": "CORTEX Desktop — Secure local AI second brain",
+  "description": "CORTEX Desktop — local-first AI second brain",
   "type": "module",
   "main": "main.js",
   "author": "CORTEX",
   "license": "MIT",
   "scripts": {
+    "start": "electron .",
     "dev": "electron .",
     "build": "electron-builder",
+    "build:win": "electron-builder --win nsis portable",
     "build:mac": "electron-builder --mac dmg",
-    "build:win": "electron-builder --win nsis",
     "build:linux": "electron-builder --linux AppImage"
   },
   "dependencies": {
-    "electron": "^28.0.0",
     "dotenv": "^16.3.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.13.3"
+  },
   "build": {
     "appId": "com.cortex.desktop",
     "productName": "CORTEX",
-    "files": [
-      "main.js",
-      "preload.js",
-      "index.html",
-      ".env.example",
-      "node_modules/**/*"
+    "directories": { "output": "dist" },
+    "files": ["main.js", "index.html", ".env.example"],
+    "extraResources": [
+      {
+        "from": "..",
+        "to": "app-server/cortex",
+        "filter": [
+          "*.mjs",
+          "package.json",
+          "public/**/*",
+          "!node_modules/**/*",
+          "!desktop/**/*",
+          "!docs/**/*",
+          "!test/**/*",
+          "!backups/**/*",
+          "!.git/**/*",
+          "!cortex.db*"
+        ]
+      },
+      {
+        "from": "../node_modules",
+        "to": "app-server/cortex/node_modules",
+        "filter": ["**/*", "!sqlite3/**/*", "!.bin/**/*", "!.cache/**/*"]
+      },
+      {
+        "from": "../../memory",
+        "to": "app-server/memory",
+        "filter": ["embed.mjs"]
+      }
     ],
-    "directories": {
-      "buildResources": "assets"
-    },
-    "mac": {
-      "target": [
-        "dmg",
-        "zip"
-      ],
-      "icon": "assets/icon.icns",
-      "category": "public.app-category.productivity"
-    },
-    "dmg": {
-      "contents": [
-        {
-          "x": 110,
-          "y": 150,
-          "type": "file"
-        },
-        {
-          "x": 240,
-          "y": 150,
-          "type": "link",
-          "path": "/Applications"
-        }
-      ]
-    },
-    "win": {
-      "target": [
-        "nsis",
-        "portable"
-      ],
-      "icon": "assets/icon.ico"
-    },
+    "win": { "target": ["nsis", "portable"], "signAndEditExecutable": false },
     "nsis": {
       "oneClick": false,
+      "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "shortcutName": "CORTEX"
     },
-    "linux": {
-      "target": [
-        "AppImage"
-      ],
-      "icon": "assets/icon.png"
-    }
+    "portable": { "artifactName": "CORTEX-${version}-portable.exe" },
+    "mac": { "target": ["dmg"], "category": "public.app-category.productivity" },
+    "linux": { "target": ["AppImage"], "category": "Utility" }
   }
 }
