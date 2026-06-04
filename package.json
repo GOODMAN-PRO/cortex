@@ -1,0 +1,17 @@
+{
+  "name": "cortex",
+  "version": "1.0.0",
+  "description": "AI-first note-taking brain — fills all of Obsidian's gaps",
+  "type": "module",
+  "main": "server.mjs",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node server.mjs"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "sqlite3": "^5.1.6",
+    "cors": "^2.8.5",
+    "body-parser": "^1.20.2"
+  }
+}

@@ -1,0 +1,16 @@
+# data — never publish the owner's actual notes
+cortex.db
+cortex.db-shm
+cortex.db-wal
+cortex.db.bak*
+backups/
+
+# deps & cruft
+node_modules/
+_*.mjs
+*.log
+.DS_Store
+
+# internal / local-only
+public/index.legacy.html
+CORTEX-PLAN.md
